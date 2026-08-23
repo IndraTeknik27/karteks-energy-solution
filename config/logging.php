@@ -131,6 +131,13 @@ return [
             'handler' => NullHandler::class,
         ],
 
+        'midtrans' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/midtrans.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],

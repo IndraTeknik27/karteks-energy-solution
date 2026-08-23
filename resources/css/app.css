@@ -2,8 +2,26 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../../resources/views/**/*.blade.php';
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* KARTEKS brand tokens - Emerald primary */
+    --color-brand-50: oklch(97.9% 0.021 166.113);
+    --color-brand-100: oklch(95% 0.052 163.051);
+    --color-brand-200: oklch(90.5% 0.093 164.15);
+    --color-brand-300: oklch(84.5% 0.143 164.978);
+    --color-brand-400: oklch(76.5% 0.177 163.223);
+    --color-brand-500: oklch(69.6% 0.17 162.48);
+    --color-brand-600: oklch(59.6% 0.145 163.225);
+    --color-brand-700: oklch(50.8% 0.118 165.612);
+    --color-brand-800: oklch(43.2% 0.095 166.913);
+    --color-brand-900: oklch(37.8% 0.077 168.94);
+    --color-brand-950: oklch(26.2% 0.051 172.552);
+
+    --color-accent-400: oklch(82.8% 0.189 84.429);
+    --color-accent-500: oklch(76.9% 0.188 70.08);
+    --color-accent-600: oklch(66.6% 0.179 58.318);
 }
