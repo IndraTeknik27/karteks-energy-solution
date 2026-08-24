@@ -66,6 +66,10 @@
 <?php endif; ?>
     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+
     <?php echo $__env->yieldPushContent('head'); ?>
 </head>
 <body class="min-h-screen bg-white text-gray-900 font-sans antialiased flex flex-col">

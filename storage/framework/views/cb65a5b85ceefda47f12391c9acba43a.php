@@ -3,7 +3,7 @@
     $cartCount = session('cart_count', 0);
 ?>
 
-<header class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
+<header class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm" x-data="{ mobileOpen: false }">
     <div class="container mx-auto px-4 sm:px-6">
         <div class="flex items-center justify-between h-16">
 
@@ -28,7 +28,7 @@
             </nav>
 
             
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
                 
                 <button type="button" class="hidden md:flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100 hover:text-brand-600 transition" aria-label="Cari">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -58,10 +58,61 @@
                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                 
-                <button type="button" class="lg:hidden flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100" x-data @click="$dispatch('toggle-mobile-menu')" aria-label="Menu">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <button type="button" class="lg:hidden flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100" @click="mobileOpen = !mobileOpen" aria-label="Menu">
+                    <svg x-show="!mobileOpen" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <svg x-show="mobileOpen" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
         </div>
+
+        
+        <div x-show="mobileOpen" x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="lg:hidden border-t border-gray-100 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-4 pt-3">
+            <nav class="space-y-1">
+                <a href="<?php echo e(route('home')); ?>" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-brand-600 font-medium <?php if(request()->routeIs('home')): ?> bg-brand-50 text-brand-700 <?php endif; ?>">
+                    Beranda
+                </a>
+                <a href="<?php echo e(route('catalog.index')); ?>" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-brand-600 font-medium <?php if(request()->routeIs('catalog.*')): ?> bg-brand-50 text-brand-700 <?php endif; ?>">
+                    Produk
+                </a>
+                <a href="<?php echo e(route('services.index')); ?>" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-brand-600 font-medium <?php if(request()->routeIs('services.*')): ?> bg-brand-50 text-brand-700 <?php endif; ?>">
+                    Layanan
+                </a>
+                <a href="<?php echo e(route('blog.index')); ?>" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-brand-600 font-medium <?php if(request()->routeIs('blog.*')): ?> bg-brand-50 text-brand-700 <?php endif; ?>">
+                    Blog
+                </a>
+                <a href="<?php echo e(route('pages.show', 'kontak-kami')); ?>" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-brand-600 font-medium">
+                    Kontak
+                </a>
+
+                <div class="border-t border-gray-100 pt-3 mt-3">
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->guard()->check()): ?>
+                        <a href="<?php echo e(auth()->user()->isAdmin() ? '/admin' : route('dashboard.index')); ?>" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-brand-600 font-medium">
+                            Dashboard Saya
+                        </a>
+                        <form method="POST" action="<?php echo e(route('logout')); ?>">
+                            <?php echo csrf_field(); ?>
+                            <button type="submit" class="w-full flex items-center px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 font-medium">
+                                Keluar
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <a href="<?php echo e(route('login')); ?>" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-brand-600 font-medium">
+                            Masuk
+                        </a>
+                        <a href="<?php echo e(route('register')); ?>" class="flex items-center px-4 py-3 rounded-xl bg-brand-600 text-white hover:bg-brand-700 font-semibold mt-2">
+                            Daftar Sekarang
+                        </a>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                </div>
+            </nav>
+        </div>
     </div>
-</header><?php /**PATH C:\laragon\www\karteks-energy-solution\resources\views/partials/navbar.blade.php ENDPATH**/ ?>
+</header>
+<?php /**PATH C:\laragon\www\karteks-energy-solution\resources\views/partials/navbar.blade.php ENDPATH**/ ?>

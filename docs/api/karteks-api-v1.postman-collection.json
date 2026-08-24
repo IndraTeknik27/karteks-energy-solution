@@ -1,0 +1,1262 @@
+{
+  "info": {
+    "name": "KARTEKS Energy Solution API v1",
+    "description": "KARTEKS Energy Solution — Laravel API v1. Includes Auth, Catalog, Cart, Checkout, Orders, Wishlist, Reviews, Custom Battery, Quotations, Bookings, Payments (Midtrans), Notifications, Contact & Newsletter.\n\n**Base URL:** `http://127.0.0.1:8000/api/v1` (dev)\n**Authentication:** Bearer Token (Laravel Sanctum)\n**Content-Type:** application/json\n\n## Setup\n1. Import this collection\n2. Set `BASE_URL` in environment (default: http://127.0.0.1:8000/api/v1)\n3. Register a user, use the returned token in `{{token}}` variable\n4. For guest cart: use `X-Session-Id` header with any UUID",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://127.0.0.1:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_number",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "address_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "cart_item_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "update": true
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "POST Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["var json = pm.response.json();", "if (json.success && json.data && json.data.token) {", "    pm.collectionVariables.set('token', json.data.token);", "    pm.collectionVariables.set('user_id', json.data.user.id);", "}", "pm.test('Register successful', function() {", "    pm.response.to.have.status(201);", "});"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"testuser{{$timestamp}}@example.com\",\n    \"phone\": \"6281234567890\",\n    \"password\": \"Password123!\",\n    \"password_confirmation\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/register",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["var json = pm.response.json();", "if (json.success && json.data && json.data.token) {", "    pm.collectionVariables.set('token', json.data.token);", "    pm.collectionVariables.set('user_id', json.data.user.id);", "}", "pm.test('Login successful', function() {", "    pm.response.to.have.status(200);", "});"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"testuser@example.com\",\n    \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "GET Me (current user)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/auth/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Name\",\n    \"phone\": \"6282123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/profile",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "PUT Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"current_password\": \"Password123!\",\n    \"password\": \"NewPassword456!\",\n    \"password_confirmation\": \"NewPassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/password",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "password"]
+            }
+          }
+        },
+        {
+          "name": "POST Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/auth/logout",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "POST Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"testuser@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/forgot-password",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "forgot-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Public Catalog",
+      "item": [
+        {
+          "name": "GET Products (list)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/products?per_page=15&sort=newest",
+              "host": ["{{BASE_URL}}"],
+              "path": ["products"],
+              "query": [
+                {"key": "per_page", "value": "15"},
+                {"key": "sort", "value": "newest"},
+                {"key": "category_slug", "value": "", "disabled": true},
+                {"key": "search", "value": "", "disabled": true}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Featured Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/products/featured?per_page=8",
+              "host": ["{{BASE_URL}}"],
+              "path": ["products", "featured"],
+              "query": [
+                {"key": "per_page", "value": "8"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Best Sellers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/products/best-sellers?per_page=8",
+              "host": ["{{BASE_URL}}"],
+              "path": ["products", "best-sellers"],
+              "query": [
+                {"key": "per_page", "value": "8"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Product Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/products/battery-pack-48v-20ah-lifepo4",
+              "host": ["{{BASE_URL}}"],
+              "path": ["products", "battery-pack-48v-20ah-lifepo4"]
+            }
+          }
+        },
+        {
+          "name": "GET Related Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/products/battery-pack-48v-20ah-lifepo4/related?per_page=4",
+              "host": ["{{BASE_URL}}"],
+              "path": ["products", "battery-pack-48v-20ah-lifepo4", "related"],
+              "query": [
+                {"key": "per_page", "value": "4"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/categories",
+              "host": ["{{BASE_URL}}"],
+              "path": ["categories"]
+            }
+          }
+        },
+        {
+          "name": "GET Brands",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/brands",
+              "host": ["{{BASE_URL}}"],
+              "path": ["brands"]
+            }
+          }
+        },
+        {
+          "name": "GET Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/services",
+              "host": ["{{BASE_URL}}"],
+              "path": ["services"]
+            }
+          }
+        },
+        {
+          "name": "GET Blog Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/blog?per_page=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["blog"],
+              "query": [
+                {"key": "per_page", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Static Pages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/pages",
+              "host": ["{{BASE_URL}}"],
+              "path": ["pages"]
+            }
+          }
+        },
+        {
+          "name": "GET Page by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/pages/tentang-kami",
+              "host": ["{{BASE_URL}}"],
+              "path": ["pages", "tentang-kami"]
+            }
+          }
+        },
+        {
+          "name": "GET Banners",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/banners",
+              "host": ["{{BASE_URL}}"],
+              "path": ["banners"]
+            }
+          }
+        },
+        {
+          "name": "GET FAQs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/faqs",
+              "host": ["{{BASE_URL}}"],
+              "path": ["faqs"]
+            }
+          }
+        },
+        {
+          "name": "GET Testimonials",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/testimonials",
+              "host": ["{{BASE_URL}}"],
+              "path": ["testimonials"]
+            }
+          }
+        },
+        {
+          "name": "GET Site Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/settings",
+              "host": ["{{BASE_URL}}"],
+              "path": ["settings"]
+            }
+          }
+        },
+        {
+          "name": "POST Calculate Shipping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"destination_city\": \"KOTA MAKASSAR\",\n    \"destination_district\": \"TAMALANREA\",\n    \"weight_kg\": 5.2,\n    \"courier\": \"jne\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/shipping/calculate",
+              "host": ["{{BASE_URL}}"],
+              "path": ["shipping", "calculate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Cart",
+      "item": [
+        {
+          "name": "GET Cart (guest or auth)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "guest-session-uuid-123",
+                "disabled": false
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/cart",
+              "host": ["{{BASE_URL}}"],
+              "path": ["cart"]
+            }
+          }
+        },
+        {
+          "name": "POST Add to Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["var json = pm.response.json();", "if (json.data && json.data.items && json.data.items.length > 0) {", "    pm.collectionVariables.set('cart_item_id', json.data.items[0].id);", "}"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Session-Id",
+                "value": "guest-session-uuid-123",
+                "disabled": false
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"itemable_type\": \"product\",\n    \"itemable_id\": \"{{product_id}}\",\n    \"qty\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/cart/items",
+              "host": ["{{BASE_URL}}"],
+              "path": ["cart", "items"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Cart Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"qty\": 3\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/cart/items/{{cart_item_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["cart", "items", "{{cart_item_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Remove Cart Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/cart/items/{{cart_item_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["cart", "items", "{{cart_item_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Apply Coupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"code\": \"DISKON10\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/cart/coupon",
+              "host": ["{{BASE_URL}}"],
+              "path": ["cart", "coupon"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Remove Coupon",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/cart/coupon",
+              "host": ["{{BASE_URL}}"],
+              "path": ["cart", "coupon"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/cart",
+              "host": ["{{BASE_URL}}"],
+              "path": ["cart"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Checkout & Orders",
+      "item": [
+        {
+          "name": "POST Preview Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"shipping_address_id\": \"{{address_id}}\",\n    \"shipping_courier\": \"jne\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/checkout/preview",
+              "host": ["{{BASE_URL}}"],
+              "path": ["checkout", "preview"]
+            }
+          }
+        },
+        {
+          "name": "POST Place Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["var json = pm.response.json();", "if (json.data && json.data.order_number) {", "    pm.collectionVariables.set('order_number', json.data.order_number);", "}"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"shipping_address_id\": \"{{address_id}}\",\n    \"shipping_courier\": \"jne\",\n    \"shipping_service\": \"REG\",\n    \"shipping_cost\": 30000,\n    \"payment_method\": \"midtrans\",\n    \"customer_notes\": \"Kirim sore hari\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/checkout/place-order",
+              "host": ["{{BASE_URL}}"],
+              "path": ["checkout", "place-order"]
+            }
+          }
+        },
+        {
+          "name": "GET Orders List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/orders?per_page=15",
+              "host": ["{{BASE_URL}}"],
+              "path": ["orders"],
+              "query": [
+                {"key": "per_page", "value": "15"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Order Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/orders/{{order_number}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["orders", "{{order_number}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Cancel Order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/orders/{{order_number}}/cancel",
+              "host": ["{{BASE_URL}}"],
+              "path": ["orders", "{{order_number}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "GET Order Tracking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/orders/{{order_number}}/tracking",
+              "host": ["{{BASE_URL}}"],
+              "path": ["orders", "{{order_number}}", "tracking"]
+            }
+          }
+        },
+        {
+          "name": "GET Order Invoice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/orders/{{order_number}}/invoice",
+              "host": ["{{BASE_URL}}"],
+              "path": ["orders", "{{order_number}}", "invoice"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Wishlist",
+      "item": [
+        {
+          "name": "GET Wishlist",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/wishlist",
+              "host": ["{{BASE_URL}}"],
+              "path": ["wishlist"]
+            }
+          }
+        },
+        {
+          "name": "POST Toggle Wishlist (add/remove)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_id\": \"{{product_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/wishlist/toggle",
+              "host": ["{{BASE_URL}}"],
+              "path": ["wishlist", "toggle"]
+            }
+          }
+        },
+        {
+          "name": "POST Move to Cart",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/wishlist/move-to-cart/{{product_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["wishlist", "move-to-cart", "{{product_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Clear Wishlist",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/wishlist/clear",
+              "host": ["{{BASE_URL}}"],
+              "path": ["wishlist", "clear"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Reviews",
+      "item": [
+        {
+          "name": "POST Create Review (multipart/form-data)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "product_id", "value": "{{product_id}}", "type": "text"},
+                {"key": "rating", "value": "5", "type": "text"},
+                {"key": "title", "value": "Baterai sangat berkualitas!", "type": "text"},
+                {"key": "content", "value": "Sudah 3 bulan menggunakan, performa tetap prima. Worth every rupiah!", "type": "text"}
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/reviews",
+              "host": ["{{BASE_URL}}"],
+              "path": ["reviews"]
+            }
+          }
+        },
+        {
+          "name": "GET My Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/reviews/my",
+              "host": ["{{BASE_URL}}"],
+              "path": ["reviews", "my"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Profile & Addresses",
+      "item": [
+        {
+          "name": "GET Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/profile",
+              "host": ["{{BASE_URL}}"],
+              "path": ["profile"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Budi Santoso\",\n    \"phone\": \"6282123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/profile",
+              "host": ["{{BASE_URL}}"],
+              "path": ["profile"]
+            }
+          }
+        },
+        {
+          "name": "GET Addresses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/addresses",
+              "host": ["{{BASE_URL}}"],
+              "path": ["addresses"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Address",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["var json = pm.response.json();", "if (json.data && json.data.id) {", "    pm.collectionVariables.set('address_id', json.data.id);", "}"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"recipient\": \"Budi Santoso\",\n    \"phone\": \"6282123456789\",\n    \"label\": \"Rumah\",\n    \"address_line_1\": \"Jl. Perintis Kemerdekaan No. 42\",\n    \"address_line_2\": \"Blok A3\",\n    \"province\": \"Sulawesi Selatan\",\n    \"city\": \"Kota Makassar\",\n    \"district\": \"Tamalanrea\",\n    \"village\": \"Kelurahan Tamalanrea\",\n    \"postal_code\": \"90245\",\n    \"is_primary\": true,\n    \"notes\": \"Dekat dengan minimarket\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/addresses",
+              "host": ["{{BASE_URL}}"],
+              "path": ["addresses"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"recipient\": \"Budi Santoso Updated\",\n    \"phone\": \"6282123456789\",\n    \"label\": \"Kantor\",\n    \"address_line_1\": \"Jl.变了 No. 42\",\n    \"province\": \"Sulawesi Selatan\",\n    \"city\": \"Kota Makassar\",\n    \"district\": \"Tamalanrea\",\n    \"postal_code\": \"90245\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/addresses/{{address_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["addresses", "{{address_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Set Primary Address",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/addresses/{{address_id}}/primary",
+              "host": ["{{BASE_URL}}"],
+              "path": ["addresses", "{{address_id}}", "primary"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Address",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/addresses/{{address_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["addresses", "{{address_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Custom Battery Requests",
+      "item": [
+        {
+          "name": "GET Battery Options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/custom-battery/options",
+              "host": ["{{BASE_URL}}"],
+              "path": ["custom-battery", "options"]
+            }
+          }
+        },
+        {
+          "name": "GET My Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/custom-battery",
+              "host": ["{{BASE_URL}}"],
+              "path": ["custom-battery"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Request (multipart/form-data)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "application", "value": "EV Bike", "type": "text"},
+                {"key": "chemistry", "value": "LiFePO4", "type": "text"},
+                {"key": "voltage", "value": "48V", "type": "text"},
+                {"key": "capacity_ah", "value": "20", "type": "text"},
+                {"key": "quantity", "value": "1", "type": "text"},
+                {"key": "description", "value": "Battery pack custom untuk sepeda motor listrik...", "type": "text"}
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/custom-battery",
+              "host": ["{{BASE_URL}}"],
+              "path": ["custom-battery"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Quotations",
+      "item": [
+        {
+          "name": "GET My Quotations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/quotations",
+              "host": ["{{BASE_URL}}"],
+              "path": ["quotations"]
+            }
+          }
+        },
+        {
+          "name": "POST Accept Quotation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/quotations/1/accept",
+              "host": ["{{BASE_URL}}"],
+              "path": ["quotations", "1", "accept"]
+            }
+          }
+        },
+        {
+          "name": "POST Reject Quotation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"reason\": \"Budget tidak tersedia saat ini.\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/quotations/1/reject",
+              "host": ["{{BASE_URL}}"],
+              "path": ["quotations", "1", "reject"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Service Bookings",
+      "item": [
+        {
+          "name": "GET Available Slots",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/bookings/available-slots?service_slug=konsultasi-ev&date=2026-08-30",
+              "host": ["{{BASE_URL}}"],
+              "path": ["bookings", "available-slots"],
+              "query": [
+                {"key": "service_slug", "value": "konsultasi-ev"},
+                {"key": "date", "value": "2026-08-30"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/bookings",
+              "host": ["{{BASE_URL}}"],
+              "path": ["bookings"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"service_id\": 1,\n    \"scheduled_date\": \"2026-08-30\",\n    \"scheduled_time\": \"09:00\",\n    \"location_type\": \"on_site\",\n    \"address_id\": \"{{address_id}}\",\n    \"vehicle_type\": \"Honda Vario 160\",\n    \"vehicle_serial\": \"MH1JBR123XYZ\",\n    \"notes\": \"Batrai sudah tidak mau ngecas\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/bookings",
+              "host": ["{{BASE_URL}}"],
+              "path": ["bookings"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Payments",
+      "item": [
+        {
+          "name": "POST Initiate Payment (Midtrans)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/payments/orders/{{order_number}}/initiate",
+              "host": ["{{BASE_URL}}"],
+              "path": ["payments", "orders", "{{order_number}}", "initiate"]
+            }
+          }
+        },
+        {
+          "name": "GET Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/payments/orders/{{order_number}}/status",
+              "host": ["{{BASE_URL}}"],
+              "path": ["payments", "orders", "{{order_number}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "POST Refresh Payment Status",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/payments/orders/{{order_number}}/refresh",
+              "host": ["{{BASE_URL}}"],
+              "path": ["payments", "orders", "{{order_number}}", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "GET Payment History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/payments/history",
+              "host": ["{{BASE_URL}}"],
+              "path": ["payments", "history"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Notifications",
+      "item": [
+        {
+          "name": "GET Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/notifications?per_page=20",
+              "host": ["{{BASE_URL}}"],
+              "path": ["notifications"],
+              "query": [
+                {"key": "per_page", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/notifications/unread-count",
+              "host": ["{{BASE_URL}}"],
+              "path": ["notifications", "unread-count"]
+            }
+          }
+        },
+        {
+          "name": "POST Mark All as Read",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/notifications/read-all",
+              "host": ["{{BASE_URL}}"],
+              "path": ["notifications", "read-all"]
+            }
+          }
+        },
+        {
+          "name": "GET Notification Preferences",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/notification-preferences",
+              "host": ["{{BASE_URL}}"],
+              "path": ["notification-preferences"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Notification Preference",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"channels\": {\n        \"database\": true,\n        \"email\": true,\n        \"whatsapp\": false,\n        \"fcm\": true\n    }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/notification-preferences/order_status",
+              "host": ["{{BASE_URL}}"],
+              "path": ["notification-preferences", "order_status"]
+            }
+          }
+        },
+        {
+          "name": "POST Register FCM Token (Flutter)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"fcm_device_token_here\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/notifications/fcm-token",
+              "host": ["{{BASE_URL}}"],
+              "path": ["notifications", "fcm-token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Public: Contact & Newsletter",
+      "item": [
+        {
+          "name": "POST Submit Contact Form",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "name", "value": "Andi Wijaya", "type": "text"},
+                {"key": "email", "value": "andi@example.com", "type": "text"},
+                {"key": "phone", "value": "6281234567890", "type": "text"},
+                {"key": "subject", "value": "Pertanyaan tentang Battery Pack", "type": "text"},
+                {"key": "message", "value": "Saya ingin tahu spesifikasi lengkap...", "type": "text"}
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/contact",
+              "host": ["{{BASE_URL}}"],
+              "path": ["contact"]
+            }
+          }
+        },
+        {
+          "name": "POST Subscribe Newsletter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"subscriber@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/newsletter/subscribe",
+              "host": ["{{BASE_URL}}"],
+              "path": ["newsletter", "subscribe"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

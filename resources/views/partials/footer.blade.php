@@ -75,6 +75,8 @@
                     @empty
                         <li class="text-gray-500">Belum ada halaman.</li>
                     @endforelse
+                </ul>
+            </div>
 
             {{-- Contact --}}
             <div>
