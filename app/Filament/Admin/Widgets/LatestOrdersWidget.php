@@ -10,6 +10,8 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class LatestOrdersWidget extends BaseWidget
 {
+    protected static bool $isLazy = false;
+
     protected static ?string $heading = '🛒 Order Terbaru';
 
     protected static ?string $description = '10 order paling baru';

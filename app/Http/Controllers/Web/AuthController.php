@@ -23,10 +23,15 @@ class AuthController extends Controller
         $data = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
-            'remember' => ['nullable', 'boolean'],
+            'remember' => ['nullable'],
         ]);
 
-        if (! Auth::attempt(['email' => $data['email'], 'password' => $data['password']], (bool) ($data['remember'] ?? false))) {
+        // Normalize email: lowercase + trim untuk prevent case-sensitivity issues
+        $email = strtolower(trim($data['email']));
+        // Convert remember: checkbox mengirim "on" saat checked, null saat unchecked
+        $remember = filter_var($data['remember'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+
+        if (! Auth::attempt(['email' => $email, 'password' => $data['password']], $remember)) {
             throw ValidationException::withMessages([
                 'email' => 'Email atau password salah.',
             ]);
@@ -66,7 +71,7 @@ class AuthController extends Controller
         $user->update(['last_login_at' => now()]);
         $user->sendEmailVerificationNotification();
 
-        return redirect()->route('dashboard')->with('success', 'Akun berhasil dibuat! Selamat datang di KARTEKS.');
+        return redirect()->route('dashboard.index')->with('success', 'Akun berhasil dibuat! Selamat datang di KARTEKS.');
     }
 
     public function logout(Request $request)

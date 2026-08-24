@@ -9,6 +9,8 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class LowStockTableWidget extends BaseWidget
 {
+    protected static bool $isLazy = false;
+
     protected static ?string $heading = '⚠️ Stok Menipis';
 
     protected static ?string $description = 'Produk dengan stock di bawah threshold';

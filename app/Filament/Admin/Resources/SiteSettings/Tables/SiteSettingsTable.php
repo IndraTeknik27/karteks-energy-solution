@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\SiteSettings\Tables;
 
+use App\Models\SiteSetting;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
@@ -64,7 +65,7 @@ class SiteSettingsTable
                 IconColumn::make('is_public')
                     ->label('Public')
                     ->boolean()
-                    ->helperText('Public = bisa diakses API.'),
+                    ->tooltip('Public = bisa diakses API.'),
 
                 TextColumn::make('sort')
                     ->label('Urutan')

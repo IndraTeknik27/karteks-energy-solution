@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Orders\Tables;
 
+use App\Models\Order;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;

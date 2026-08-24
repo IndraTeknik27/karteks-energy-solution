@@ -43,7 +43,7 @@ class CouponsTable
                 TextColumn::make('value')
                     ->label('Nilai')
                     ->money('IDR')
-                    ->formatStateUsing(fn ($state, $r) => $r->type === 'percent' ? $state.'%' : 'Rp '.number_format($state, 0, ',', '.'))
+                    ->formatStateUsing(fn ($state, $record) => $record?->type === 'percent' ? $state.'%' : 'Rp '.number_format($state, 0, ',', '.'))
                     ->sortable(),
 
                 TextColumn::make('min_order_amount')
@@ -60,9 +60,9 @@ class CouponsTable
 
                 TextColumn::make('usage')
                     ->label('Penggunaan')
-                    ->state(fn ($r) => $r->max_uses ? "{$r->used_count} / {$r->max_uses}" : "{$r->used_count} / ∞")
+                    ->state(fn ($record) => $record?->max_uses ? "{$record->used_count} / {$record->max_uses}" : "{$record->used_count} / ∞")
                     ->badge()
-                    ->color(fn ($state, $r) => $r->max_uses && $r->used_count >= $r->max_uses ? 'danger' : 'info'),
+                    ->color(fn ($state, $record) => $record?->max_uses && $record->used_count >= $record->max_uses ? 'danger' : 'info'),
 
                 IconColumn::make('is_active')->label('Aktif')->boolean()->toggleable(),
 

@@ -7,6 +7,8 @@ use Filament\Widgets\ChartWidget;
 
 class OrdersChartWidget extends ChartWidget
 {
+    protected static bool $isLazy = false;
+
     protected ?string $heading = 'Order 14 Hari (by Status)';
 
     protected ?string $description = 'Distribusi order berdasarkan status';
@@ -16,6 +18,8 @@ class OrdersChartWidget extends ChartWidget
     protected int|string|array $columnSpan = 2;
 
     public ?string $filter = '14';
+
+    protected ?string $maxHeight = '280px';
 
     protected function getType(): string
     {

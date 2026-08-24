@@ -10,6 +10,8 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class ServiceBookingWidget extends BaseWidget
 {
+    protected static bool $isLazy = false;
+
     protected static ?string $heading = '📅 Service Booking';
 
     protected static ?string $description = 'Booking 7 hari ke depan + statistik';

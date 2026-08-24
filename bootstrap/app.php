@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // FASE 4.8: Alias for validate.file.upload middleware
         $middleware->alias([
             'file.validate' => \App\Http\Middleware\ValidateFileUpload::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
 
         // CORS untuk API consumer (Flutter, dll)

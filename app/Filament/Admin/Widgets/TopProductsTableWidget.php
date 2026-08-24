@@ -10,6 +10,8 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class TopProductsTableWidget extends BaseWidget
 {
+    protected static bool $isLazy = false;
+
     protected static ?string $heading = '🏆 Top Products';
 
     protected static ?string $description = 'Produk terlaris 30 hari terakhir';

@@ -10,6 +10,8 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class CustomBatteryStatsWidget extends BaseWidget
 {
+    protected static bool $isLazy = false;
+
     protected static ?string $heading = '🔋 Custom Battery & Quotation';
 
     protected static ?string $description = 'Pending requests + booking minggu ini';

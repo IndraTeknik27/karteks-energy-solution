@@ -8,6 +8,8 @@ use Filament\Widgets\ChartWidget;
 
 class RevenueChartWidget extends ChartWidget
 {
+    protected static bool $isLazy = false;
+
     protected ?string $heading = 'Pendapatan 30 Hari';
 
     protected ?string $description = 'Total revenue dari order paid/completed (IDR)';
@@ -17,6 +19,8 @@ class RevenueChartWidget extends ChartWidget
     protected int|string|array $columnSpan = 'full';
 
     public ?string $filter = '30';
+
+    protected ?string $maxHeight = '280px';
 
     protected function getType(): string
     {

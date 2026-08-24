@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\NewsletterSubscribers\Tables;
 
+use App\Filament\Admin\Resources\NewsletterSubscribers\NewsletterSubscriberResource;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;

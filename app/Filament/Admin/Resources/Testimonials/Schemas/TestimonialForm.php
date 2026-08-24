@@ -70,22 +70,14 @@ class TestimonialForm
 
                 Section::make('Media')
                     ->schema([
-                        FileUpload::make('photo')
+                        FileUpload::make('customer_photo')
                             ->label('Foto Pelanggan')
-                            ->collection('photo')
+                            ->disk('public')
+                            ->directory('testimonials')
                             ->image()
                             ->imageEditor()
-                            ->directory('testimonials')
                             ->maxSize(2048)
                             ->helperText('Format: JPG/PNG. Maks 2MB. Akan otomatis di-crop 1:1.')
-                            ->columnSpanFull(),
-
-                        TextInput::make('customer_photo')
-                            ->label('URL Foto (alternatif)')
-                            ->url()
-                            ->maxLength(500)
-                            ->placeholder('https://...')
-                            ->helperText('Opsional. Jika upload di atas, field ini di-override.')
                             ->columnSpanFull(),
                     ])
                     ->columns(1),

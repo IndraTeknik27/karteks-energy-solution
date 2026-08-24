@@ -42,6 +42,12 @@ return [
             'driver' => 'sanctum',
             'provider' => 'users',
         ],
+
+        // Guard terpisah untuk Filament admin — session cookie-nya beda dari web customer
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
     ],
 
     /*

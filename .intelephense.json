@@ -1,7 +1,9 @@
 {
   "diagnostics": {
     "P1132": false,
+    "PHP0404": false,
     "PHP0443": false,
-    "PHP6513": false
+    "PHP6513": false,
+    "PHP0418": false
   }
 }

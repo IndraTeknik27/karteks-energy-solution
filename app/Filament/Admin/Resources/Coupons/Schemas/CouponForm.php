@@ -52,7 +52,7 @@ class CouponForm
                     ->numeric()
                     ->minValue(0)
                     ->suffix(fn ($get) => $get('type') === 'percent' ? '%' : 'Rp')
-                    ->helperText(fn ($Get) => $Get('type') === 'percent' ? 'Persentase dari subtotal' : 'Potongan harga tetap dalam Rupiah'),
+                    ->helperText(fn ($get) => $get('type') === 'percent' ? 'Persentase dari subtotal' : 'Potongan harga tetap dalam Rupiah'),
 
                 TextInput::make('min_order_amount')
                     ->label('Minimum Order')

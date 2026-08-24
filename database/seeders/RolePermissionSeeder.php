@@ -124,6 +124,13 @@ class RolePermissionSeeder extends Seeder
 
         Role::firstOrCreate(['name' => 'customer', 'guard_name' => 'web']);
 
-        $this->command->info('Roles & Permissions seeded: '.count($permissions).' permissions, '.count($roles).'+1 roles.');
+        // admin-access: gate untuk Filament admin panel
+        $adminAccessRole = Role::firstOrCreate(['name' => 'admin-access', 'guard_name' => 'web']);
+        // Assign admin-access role ke semua user yang sudah punya super-admin atau admin
+        $adminAccessRole->users()->syncWithoutDetaching(
+            \App\Models\User::whereHas('roles', fn ($q) => $q->whereIn('name', ['super-admin', 'admin']))->pluck('id')
+        );
+
+        $this->command->info('Roles & Permissions seeded: '.count($permissions).' permissions, '.count($roles).'+2 roles.');
     }
 }

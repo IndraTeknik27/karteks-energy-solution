@@ -7,6 +7,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use App\Http\Middleware\RoleMiddleware;
 use Filament\Navigation\NavigationGroup;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
@@ -84,10 +85,10 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->authGuard('admin')
             ->authMiddleware([
                 Authenticate::class,
-                // RoleMiddleware aktif di FASE 1 setelah Spatie Permission seeder jalan
-                // RoleMiddleware::class.':admin-access',
+                RoleMiddleware::class.':admin-access',
             ])
             ->login()
             ->registration(false)
