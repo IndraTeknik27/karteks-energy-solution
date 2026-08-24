@@ -3,7 +3,7 @@
     $cartCount = session('cart_count', 0);
 @endphp
 
-<header class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm" x-data="{ mobileOpen: false }">
+<header class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm" x-data="{ mobileOpen: false, searchOpen: false, searchQuery: '' }">
     <div class="container mx-auto px-4 sm:px-6">
         <div class="flex items-center justify-between h-16">
 
@@ -30,9 +30,32 @@
             {{-- Right actions --}}
             <div class="flex items-center gap-2">
                 {{-- Search --}}
-                <button type="button" class="hidden md:flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100 hover:text-brand-600 transition" aria-label="Cari">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-                </button>
+                <div x-show="!searchOpen" x-transition>
+                    <button type="button" class="hidden md:flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100 hover:text-brand-600 transition" aria-label="Cari" @click="searchOpen = true; $nextTick(() => document.getElementById('nav-search-input')?.focus())">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                    </button>
+                </div>
+
+                {{-- Inline search bar --}}
+                <div x-show="searchOpen" x-cloak x-transition class="hidden md:flex items-center">
+                    <form action="{{ route('catalog.index') }}" method="GET" class="flex items-center" @submit="if (!searchQuery.trim()) { $event.preventDefault(); searchOpen = false; }">
+                        <input
+                            type="search"
+                            name="search"
+                            id="nav-search-input"
+                            x-model="searchQuery"
+                            placeholder="Cari produk..."
+                            class="w-40 lg:w-52 h-9 pl-3 pr-2 rounded-full border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
+                            @keydown.escape="searchOpen = false; searchQuery = ''"
+                        />
+                        <button type="submit" class="ml-1 flex items-center justify-center w-8 h-8 rounded-full text-brand-600 hover:bg-brand-50 transition" aria-label="Submit search">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                        </button>
+                        <button type="button" class="flex items-center justify-center w-8 h-8 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition" aria-label="Tutup pencarian" @click="searchOpen = false; searchQuery = ''">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </form>
+                </div>
 
                 {{-- Cart --}}
                 <a href="{{ route('cart.index') }}" class="relative flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100 hover:text-brand-600 transition" aria-label="Cart">
@@ -92,6 +115,19 @@
                 </a>
 
                 <div class="border-t border-gray-100 pt-3 mt-3">
+                    {{-- Mobile search --}}
+                    <form action="{{ route('catalog.index') }}" method="GET" class="flex items-center mb-3 px-4">
+                        <input
+                            type="search"
+                            name="search"
+                            placeholder="Cari produk..."
+                            class="flex-1 h-10 pl-4 pr-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
+                        />
+                        <button type="submit" class="ml-2 flex items-center justify-center w-10 h-10 rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                        </button>
+                    </form>
+
                     @auth
                         <a href="{{ auth()->user()->isAdmin() ? '/admin' : route('dashboard.index') }}" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-brand-600 font-medium">
                             Dashboard Saya

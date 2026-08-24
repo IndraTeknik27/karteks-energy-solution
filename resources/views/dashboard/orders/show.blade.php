@@ -51,8 +51,15 @@
                             @foreach($order->items as $item)
                                 <div class="flex gap-4 py-3 first:pt-0 last:pb-0">
                                     <div class="w-16 h-16 bg-gray-50 rounded-lg overflow-hidden shrink-0">
-                                        @if($item->image)
-                                            <img src="{{ $item->image }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
+                                        @php
+                                            $showImageUrl = $item->image
+                                                ?: (method_exists($item->itemable, 'getFeaturedImageUrl') ? $item->itemable->featuredImageUrl : null)
+                                                ?: (method_exists($item->itemable, 'getFirstMediaUrl')
+                                                    ? ($item->itemable->getFirstMediaUrl('gallery') ?: $item->itemable->getFirstMediaUrl('featured'))
+                                                    : null);
+                                        @endphp
+                                        @if($showImageUrl)
+                                            <img src="{{ $showImageUrl }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
                                         @endif
                                     </div>
                                     <div class="flex-1 min-w-0">

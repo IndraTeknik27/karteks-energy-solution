@@ -17,12 +17,17 @@ class CustomBatteryStatusChanged extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['database'];
+        if (! empty($notifiable->email) && filter_var($notifiable->email, FILTER_VALIDATE_EMAIL)) {
+            $channels[] = 'mail';
+        }
+        return $channels;
     }
 
     public function toMail(object $notifiable): StatusChangedMail
     {
-        return new StatusChangedMail($this->request);
+        return (new StatusChangedMail($this->request))
+            ->to($notifiable->email);
     }
 
     public function toDatabase(object $notifiable): array

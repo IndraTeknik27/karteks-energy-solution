@@ -27,9 +27,10 @@
 
                 {{-- Product Gallery --}}
                 <div x-data="{ activeImage: 0 }">
+                    @php $mainImage = $product->featuredImageUrl; @endphp
                     <div class="aspect-square bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 mb-3">
-                        @if($product->getFirstMediaUrl('images'))
-                            <img x-show="activeImage === 0" src="{{ $product->getFirstMediaUrl('images') }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                        @if($mainImage)
+                            <img x-show="activeImage === 0" src="{{ $mainImage }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-gray-300">
                                 <svg class="w-24 h-24" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
@@ -37,11 +38,11 @@
                         @endif
                     </div>
 
-                    @if($product->images->count() > 1)
+                    @if($product->images->count() > 0)
                         <div class="grid grid-cols-5 gap-2">
                             @foreach($product->images->take(5) as $i => $image)
                                 <button type="button" @click="activeImage = {{ $i }}" class="aspect-square rounded-lg overflow-hidden border-2 transition" :class="activeImage === {{ $i }} ? 'border-brand-500' : 'border-gray-200 hover:border-brand-300'">
-                                    <img src="{{ $image->getUrl('thumb') ?? $image->url }}" alt="" class="w-full h-full object-cover">
+                                    <img src="{{ $image->image_url }}" alt="" class="w-full h-full object-cover">
                                 </button>
                             @endforeach
                         </div>

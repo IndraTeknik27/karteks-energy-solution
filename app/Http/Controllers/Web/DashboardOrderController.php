@@ -26,7 +26,7 @@ class DashboardOrderController extends Controller
     {
         $order = $request->user()->orders()
             ->where('order_number', $orderNumber)
-            ->with(['items', 'statusHistories'])
+            ->with(['items.itemable', 'statusHistories'])
             ->first();
 
         if (! $order) {

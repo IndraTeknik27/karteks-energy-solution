@@ -157,12 +157,7 @@ class ServiceBookingService
             ]);
 
             if ($customer = $booking->customer) {
-                $customer->notify(new ServiceBookingConfirmedNotification(
-                    bookingNumber: $booking->booking_number,
-                    serviceName: $booking->service?->name ?? 'Layanan',
-                    scheduledAt: $booking->scheduled_at,
-                    technicianName: $technicianId ? User::find($technicianId)?->name : null,
-                ));
+                $customer->notify(new ServiceBookingConfirmedNotification($booking));
             }
 
             Log::info('service_booking_confirmed', [
@@ -496,12 +491,7 @@ class ServiceBookingService
             ->get();
 
         foreach ($admins as $admin) {
-            $admin->notify(new ServiceBookingCreatedNotification(
-                bookingNumber: $booking->booking_number,
-                customerName: $booking->customer_name,
-                serviceName: $booking->service?->name ?? 'Layanan',
-                scheduledAt: $booking->scheduled_at,
-            ));
+            $admin->notify(new ServiceBookingCreatedNotification($booking));
         }
     }
 
@@ -528,22 +518,10 @@ class ServiceBookingService
 
         foreach ($notifiables as $user) {
             if ($event === 'rescheduled') {
-                $user->notify(new ServiceBookingRescheduledNotification(
-                    bookingNumber: $booking->booking_number,
-                    serviceName: $booking->service?->name ?? 'Layanan',
-                    oldScheduledAt: $context['old_scheduled_at'],
-                    newScheduledAt: $context['new_scheduled_at'],
-                    changedByName: $context['changed_by_name'] ?? null,
-                    recipientRole: $user->id === $booking->customer_id ? 'customer' : 'staff',
-                ));
+                $user->notify(new ServiceBookingRescheduledNotification($booking));
             } elseif ($event === 'cancelled') {
-                $user->notify(new ServiceBookingCancelledNotification(
-                    bookingNumber: $booking->booking_number,
-                    serviceName: $booking->service?->name ?? 'Layanan',
-                    scheduledAt: $booking->scheduled_at,
-                    reason: $context['reason'] ?? '',
-                    cancelledBy: $context['cancelled_by'] ?? 'system',
-                ));
+                $recipient = $user->id === $booking->customer_id ? 'customer' : 'staff';
+                $user->notify(new ServiceBookingCancelledNotification($booking, $recipient));
             }
         }
     }

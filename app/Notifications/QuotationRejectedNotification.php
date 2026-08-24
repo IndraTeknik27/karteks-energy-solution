@@ -17,12 +17,17 @@ class QuotationRejectedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['database'];
+        if (! empty($notifiable->email) && filter_var($notifiable->email, FILTER_VALIDATE_EMAIL)) {
+            $channels[] = 'mail';
+        }
+        return $channels;
     }
 
     public function toMail(object $notifiable): QuotationRejectedMail
     {
-        return new QuotationRejectedMail($this->quotation);
+        return (new QuotationRejectedMail($this->quotation))
+            ->to($notifiable->email);
     }
 
     public function toDatabase(object $notifiable): array

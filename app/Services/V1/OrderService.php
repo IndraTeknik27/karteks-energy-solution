@@ -16,6 +16,7 @@ use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use InvalidArgumentException;
 
@@ -140,9 +141,13 @@ class OrderService
                 'itemable_id' => $item->itemable_id,
                 'name' => $itemable?->name ?? 'Produk',
                 'sku' => $itemable?->sku,
-                'image' => $itemable && method_exists($itemable, 'getFirstMediaUrl')
-                    ? ($itemable->getFirstMediaUrl('images', 'thumb') ?: $itemable->getFirstMediaUrl('image', 'thumb'))
-                    : null,
+                'image' => $itemable ? (
+                    method_exists($itemable, 'getFeaturedImageUrl')
+                        ? $itemable->featuredImageUrl
+                        : (method_exists($itemable, 'getFirstMediaUrl')
+                            ? ($itemable->getFirstMediaUrl('gallery') ?: $itemable->getFirstMediaUrl('featured'))
+                            : null)
+                ) : null,
                 'qty' => $item->qty,
                 'price' => $price,
                 'price_formatted' => 'Rp '.number_format($price, 0, ',', '.'),
@@ -292,9 +297,12 @@ class OrderService
             $itemable = $cartItem->itemable;
 
             $image = null;
-            if ($itemable && method_exists($itemable, 'getFirstMediaUrl')) {
-                $image = $itemable->getFirstMediaUrl('images', 'thumb')
-                    ?: $itemable->getFirstMediaUrl('image', 'thumb');
+            if ($itemable) {
+                $image = method_exists($itemable, 'getFeaturedImageUrl')
+                    ? $itemable->featuredImageUrl
+                    : (method_exists($itemable, 'getFirstMediaUrl')
+                        ? ($itemable->getFirstMediaUrl('gallery') ?: $itemable->getFirstMediaUrl('featured'))
+                        : null);
             }
 
             OrderItem::create([

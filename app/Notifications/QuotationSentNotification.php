@@ -17,12 +17,17 @@ class QuotationSentNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['database'];
+        if (! empty($notifiable->email) && filter_var($notifiable->email, FILTER_VALIDATE_EMAIL)) {
+            $channels[] = 'mail';
+        }
+        return $channels;
     }
 
     public function toMail(object $notifiable): QuotationSentMail
     {
-        return new QuotationSentMail($this->quotation);
+        return (new QuotationSentMail($this->quotation))
+            ->to($notifiable->email);
     }
 
     public function toDatabase(object $notifiable): array

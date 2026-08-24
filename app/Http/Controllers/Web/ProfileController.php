@@ -37,10 +37,8 @@ class ProfileController extends Controller
                 return back()->withErrors(['current_password' => 'Password saat ini salah.']);
             }
             $user->password = Hash::make($data['password']);
-            unset($data['password']);
         }
-
-        unset($data['current_password'], $data['password_confirmation']);
+        unset($data['password'], $data['current_password'], $data['password_confirmation']);
         $user->fill($data)->save();
 
         return back()->with('success', 'Profil berhasil diperbarui.');
