@@ -119,7 +119,7 @@ class ReviewsTable
                     ->label('Unapprove')
                     ->icon('heroicon-o-x-circle')
                     ->color('warning')
-                    ->visible(fn ($r) => $r->is_approved)
+                    ->visible(fn ($record) => $record?->is_approved)
                     ->requiresConfirmation()
                     ->action(function ($record) {
                         $record->update([

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Menus\Schemas;
 
-use Filament\Forms\Components\Section;
+use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;

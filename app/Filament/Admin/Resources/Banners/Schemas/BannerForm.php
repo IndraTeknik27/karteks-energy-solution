@@ -4,12 +4,12 @@ namespace App\Filament\Admin\Resources\Banners\Schemas;
 
 use App\Models\Banner;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Section;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class BannerForm
@@ -43,9 +43,10 @@ class BannerForm
                 Section::make('Gambar Banner')
                     ->description('Upload gambar desktop (1920x600px ideal). Gambar mobile akan otomatis di-crop atau bisa di-upload terpisah.')
                     ->schema([
-                        SpatieMediaLibraryFileUpload::make('desktop')
+                        FileUpload::make('image_desktop')
                             ->label('Gambar Desktop')
-                            ->collection('desktop')
+                            ->disk('public')
+                            ->directory('banners/desktop')
                             ->image()
                             ->imageEditor()
                             ->imageEditorAspectRatioOptions(['16:5', '16:4', '16:3', '3:1'])
@@ -54,9 +55,10 @@ class BannerForm
                             ->helperText('Format: JPG/PNG/WebP. Maks 5MB.')
                             ->columnSpanFull(),
 
-                        SpatieMediaLibraryFileUpload::make('mobile')
+                        FileUpload::make('image_mobile')
                             ->label('Gambar Mobile (Opsional)')
-                            ->collection('mobile')
+                            ->disk('public')
+                            ->directory('banners/mobile')
                             ->image()
                             ->imageEditor()
                             ->imageEditorAspectRatioOptions(['3:4', '4:5', '1:1'])

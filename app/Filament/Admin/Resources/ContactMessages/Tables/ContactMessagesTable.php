@@ -104,7 +104,7 @@ class ContactMessagesTable
                     ->label('Tandai Dibaca')
                     ->icon('heroicon-o-envelope-open')
                     ->color('info')
-                    ->visible(fn ($r) => is_null($r->read_at))
+                    ->visible(fn ($record) => is_null($record?->read_at))
                     ->action(function ($record) {
                         $record->update([
                             'read_at' => now(),
@@ -117,7 +117,7 @@ class ContactMessagesTable
                     ->icon('heroicon-o-archive-box')
                     ->color('gray')
                     ->requiresConfirmation()
-                    ->visible(fn ($r) => $r->status !== 'archived')
+                    ->visible(fn ($record) => $record?->status !== 'archived')
                     ->action(function ($record) {
                         $record->update(['status' => 'archived']);
                         Notification::make()->title('Pesan diarsipkan')->success()->send();

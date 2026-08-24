@@ -94,7 +94,10 @@ class AdminPanelProvider extends PanelProvider
             ->passwordReset()
             ->emailVerification()
             ->profile()
-            ->databaseNotifications()
+            // ->databaseNotifications() — disabled: konflik dengan FASE 4.6 custom Notification model
+            // (Illuminate\Notifications\DatabaseNotification expects UUID id + notifiable_type/id,
+            //  sedangkan tabel notifications app pakai BIGINT id + user_id direct FK)
+            // Gunakan NotificationCenter page dari FASE 4.3 untuk admin UI notifikasi
             ->broadcasting()
             ->favicon('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><path fill=%22%2310b981%22 d=%22M13 10V3L4 14h7v7l9-11h-7z%22/></svg>');
     }

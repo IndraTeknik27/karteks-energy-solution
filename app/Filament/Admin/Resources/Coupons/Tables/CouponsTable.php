@@ -106,9 +106,9 @@ class CouponsTable
             ->recordActions([
                 EditAction::make(),
                 Action::make('toggle')
-                    ->label(fn ($r) => $r->is_active ? 'Nonaktifkan' : 'Aktifkan')
-                    ->icon(fn ($r) => $r->is_active ? 'heroicon-o-eye-slash' : 'heroicon-o-eye')
-                    ->color(fn ($r) => $r->is_active ? 'warning' : 'success')
+                    ->label(fn ($record) => $record?->is_active ? 'Nonaktifkan' : 'Aktifkan')
+                    ->icon(fn ($record) => $record?->is_active ? 'heroicon-o-eye-slash' : 'heroicon-o-eye')
+                    ->color(fn ($record) => $record?->is_active ? 'warning' : 'success')
                     ->requiresConfirmation()
                     ->action(function ($record) {
                         $record->update(['is_active' => ! $record->is_active]);

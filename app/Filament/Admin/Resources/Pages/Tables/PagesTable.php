@@ -72,9 +72,9 @@ class PagesTable
             ->recordActions([
                 EditAction::make(),
                 Action::make('toggle_publish')
-                    ->label(fn ($r) => $r->is_published ? 'Unpublish' : 'Publish')
-                    ->icon(fn ($r) => $r->is_published ? 'heroicon-o-eye-slash' : 'heroicon-o-eye')
-                    ->color(fn ($r) => $r->is_published ? 'warning' : 'success')
+                    ->label(fn ($record) => $record?->is_published ? 'Unpublish' : 'Publish')
+                    ->icon(fn ($record) => $record?->is_published ? 'heroicon-o-eye-slash' : 'heroicon-o-eye')
+                    ->color(fn ($record) => $record?->is_published ? 'warning' : 'success')
                     ->requiresConfirmation()
                     ->action(function ($record) {
                         $record->update(['is_published' => ! $record->is_published]);
