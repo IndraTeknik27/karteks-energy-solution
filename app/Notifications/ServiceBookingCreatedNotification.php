@@ -2,48 +2,44 @@
 
 namespace App\Notifications;
 
+use App\Mail\ServiceBooking\BookingCreatedMail;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
-class ServiceBookingCreatedNotification extends Notification implements ShouldQueue
+class ServiceBookingCreatedNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(
-        public string $bookingNumber,
-        public string $customerName,
-        public string $serviceName,
-        public ?\Carbon\Carbon $scheduledAt = null,
-    ) {}
+    public function __construct(public \App\Models\ServiceBooking $booking)
+    {
+    }
 
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): BookingCreatedMail
     {
-        return (new MailMessage)
-            ->subject("Booking Service Baru - {$this->bookingNumber}")
-            ->greeting("Halo Tim KARTEKS,")
-            ->line("Customer {$this->customerName} baru saja membuat booking service.")
-            ->line("Nomor Booking: {$this->bookingNumber}")
-            ->line("Layanan: {$this->serviceName}")
-            ->line("Jadwal: ".($this->scheduledAt?->format('d F Y, H:i') ?? 'Belum ditentukan'))
-            ->action('Tinjau di Admin Panel', url('/admin/service-bookings/'.$this->bookingNumber))
-            ->line('Mohon konfirmasi secepatnya.');
+        return new BookingCreatedMail($this->booking);
     }
 
-    public function toArray(object $notifiable): array
+    public function toDatabase(object $notifiable): array
     {
         return [
             'type' => 'service_booking_created',
-            'booking_number' => $this->bookingNumber,
-            'customer_name' => $this->customerName,
-            'service_name' => $this->serviceName,
-            'scheduled_at' => $this->scheduledAt?->toIso8601String(),
+            'booking_id' => $this->booking->id,
+            'booking_number' => $this->booking->booking_number,
+            'title' => 'Service Booking Baru',
+            'message' => "Booking #{$this->booking->booking_number} dari {$this->booking->customer_name} untuk " . ($this->booking->service?->name ?? 'layanan'),
+            'action_url' => "/admin/service-bookings/{$this->booking->id}",
+            'icon' => '📅',
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }

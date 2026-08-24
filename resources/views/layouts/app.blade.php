@@ -4,15 +4,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#10b981">
 
-    <title>@yield('title', config('karteks.company.name', 'KARTEKS ENERGY SOLUTION'))</title>
-    <meta name="description" content="@yield('description', config('karteks.seo.default_description'))">
+    {{-- SEO meta tags --}}
+    @if(isset($seoMeta))
+        <x-meta :meta="$seoMeta" />
+    @else
+        <title>@yield('title', config('karteks.company.name', 'KARTEKS ENERGY SOLUTION'))</title>
+        <meta name="description" content="@yield('description', config('karteks.seo.default_description'))">
+    @endif
 
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>">
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @endif
+
+    {{-- JSON-LD schemas --}}
+    @if(! empty($seoSchemas))
+        <x-jsonld :schemas="$seoSchemas" />
     @endif
 
     @stack('head')

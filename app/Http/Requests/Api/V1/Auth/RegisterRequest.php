@@ -2,14 +2,25 @@
 
 namespace App\Http\Requests\Api\V1\Auth;
 
+use App\Support\Traits\InputSanitizer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
+    use InputSanitizer;
+
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * FASE 4.8: Sanitize input sebelum validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge($this->sanitizeInput($this->all()));
     }
 
     public function rules(): array

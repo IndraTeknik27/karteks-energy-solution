@@ -2,57 +2,44 @@
 
 namespace App\Notifications;
 
+use App\Mail\ServiceBooking\BookingConfirmedMail;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
-class ServiceBookingConfirmedNotification extends Notification implements ShouldQueue
+class ServiceBookingConfirmedNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(
-        public string $bookingNumber,
-        public string $serviceName,
-        public ?\Carbon\Carbon $scheduledAt = null,
-        public ?string $technicianName = null,
-    ) {}
+    public function __construct(public \App\Models\ServiceBooking $booking)
+    {
+    }
 
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): BookingConfirmedMail
     {
-        $mail = (new MailMessage)
-            ->subject("Booking Dikonfirmasi - {$this->bookingNumber}")
-            ->greeting("Halo {$notifiable->name},")
-            ->line("Booking service Anda telah dikonfirmasi oleh tim KARTEKS.")
-            ->line("Nomor Booking: {$this->bookingNumber}")
-            ->line("Layanan: {$this->serviceName}");
-
-        if ($this->scheduledAt) {
-            $mail->line("Jadwal: {$this->scheduledAt->format('l, d F Y H:i')}");
-        }
-
-        if ($this->technicianName) {
-            $mail->line("Teknisi: {$this->technicianName}");
-        }
-
-        return $mail
-            ->action('Lihat Detail', url('/dashboard/bookings/'.$this->bookingNumber))
-            ->line('Kami akan menghubungi Anda jika ada perubahan jadwal.');
+        return new BookingConfirmedMail($this->booking);
     }
 
-    public function toArray(object $notifiable): array
+    public function toDatabase(object $notifiable): array
     {
         return [
             'type' => 'service_booking_confirmed',
-            'booking_number' => $this->bookingNumber,
-            'service_name' => $this->serviceName,
-            'scheduled_at' => $this->scheduledAt?->toIso8601String(),
-            'technician_name' => $this->technicianName,
+            'booking_id' => $this->booking->id,
+            'booking_number' => $this->booking->booking_number,
+            'title' => 'Booking Dikonfirmasi',
+            'message' => "Booking #{$this->booking->booking_number} telah dikonfirmasi untuk " . $this->booking->scheduled_at->format('d F Y H:i'),
+            'action_url' => "/dashboard/booking/{$this->booking->id}",
+            'icon' => '✓',
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }

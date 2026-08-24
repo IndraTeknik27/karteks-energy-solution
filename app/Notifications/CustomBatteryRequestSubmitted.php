@@ -2,48 +2,45 @@
 
 namespace App\Notifications;
 
+use App\Mail\CustomBattery\RequestSubmittedMail;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\DatabaseMessage;
 use Illuminate\Notifications\Notification;
 
-class CustomBatteryRequestSubmitted extends Notification implements ShouldQueue
+class CustomBatteryRequestSubmitted extends Notification
 {
     use Queueable;
 
-    public function __construct(
-        public string $requestNumber,
-        public string $customerName,
-        public string $chemistry,
-        public string $voltage,
-    ) {}
+    public function __construct(public \App\Models\CustomBatteryRequest $request)
+    {
+    }
 
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): RequestSubmittedMail
     {
-        return (new MailMessage)
-            ->subject("Permintaan Custom Battery Baru - {$this->requestNumber}")
-            ->greeting("Halo Tim KARTEKS,")
-            ->line("Customer {$this->customerName} baru saja mengajukan permintaan custom battery baru.")
-            ->line("Nomor Request: {$this->requestNumber}")
-            ->line("Kimia Baterai: {$this->chemistry}")
-            ->line("Voltase: {$this->voltage}")
-            ->action('Tinjau di Admin Panel', url('/admin/custom-battery-requests/'.$this->requestNumber))
-            ->line('Mohon ditinjau secepatnya.');
+        return new RequestSubmittedMail($this->request);
     }
 
-    public function toArray(object $notifiable): array
+    public function toDatabase(object $notifiable): array
     {
         return [
             'type' => 'custom_battery_submitted',
-            'request_number' => $this->requestNumber,
-            'customer_name' => $this->customerName,
-            'chemistry' => $this->chemistry,
-            'voltage' => $this->voltage,
+            'request_id' => $this->request->id,
+            'request_number' => $this->request->request_number,
+            'title' => 'Custom Battery Request Baru',
+            'message' => "Request #{$this->request->request_number} dari {$this->request->customer?->name} menunggu review.",
+            'action_url' => "/admin/custom-battery-requests/{$this->request->id}",
+            'icon' => '🔋',
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }

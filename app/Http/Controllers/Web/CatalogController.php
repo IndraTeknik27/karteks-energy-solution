@@ -6,10 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\V1\SeoService;
 use Illuminate\Http\Request;
 
 class CatalogController extends Controller
 {
+    public function __construct(
+        protected SeoService $seo,
+    ) {}
     public function index(Request $request)
     {
         $query = Product::query()
@@ -82,12 +86,36 @@ class CatalogController extends Controller
             $currentBrand = Brand::where('slug', $request->brand_slug)->first();
         }
 
+        // SEO meta tags untuk catalog index (atau filtered category/brand)
+        $seoEntity = $currentCategory ?? $currentBrand;
+        $seoMeta = $this->seo->generateMeta($seoEntity, [
+            'title' => $seoEntity ? null : 'Katalog Produk - KARTEKS ENERGY SOLUTION',
+            'description' => $seoEntity ? null : 'Jelajahi koleksi lengkap produk KARTEKS: EV Car, EV Bike, Custom Battery, Solar Panel, dan lainnya.',
+            'canonical' => url()->current(),
+        ]);
+
+        // Breadcrumb JSON-LD untuk filtered pages
+        $seoSchemas = [];
+        $breadcrumbItems = [
+            ['name' => 'Beranda', 'url' => route('home')],
+            ['name' => 'Produk', 'url' => route('catalog.index')],
+        ];
+        if ($currentCategory) {
+            $breadcrumbItems[] = ['name' => $currentCategory->name, 'url' => route('catalog.index', ['category_slug' => $currentCategory->slug])];
+        }
+        if ($currentBrand) {
+            $breadcrumbItems[] = ['name' => $currentBrand->name, 'url' => route('catalog.index', ['brand_slug' => $currentBrand->slug])];
+        }
+        $seoSchemas[] = $this->seo->breadcrumbJsonLd($breadcrumbItems);
+
         return view('pages.catalog.index', compact(
             'products',
             'categories',
             'brands',
             'currentCategory',
             'currentBrand',
+            'seoMeta',
+            'seoSchemas',
         ));
     }
 
@@ -134,6 +162,21 @@ class CatalogController extends Controller
             'average' => round((float) $product->reviews()->where('is_approved', true)->avg('rating'), 1),
         ];
 
-        return view('pages.catalog.show', compact('product', 'related', 'reviews', 'reviewStats'));
+        // SEO meta tags untuk product detail
+        $seoMeta = $this->seo->generateMeta($product);
+        $seoSchemas = [$this->seo->productJsonLd($product)];
+
+        // Breadcrumb JSON-LD
+        $breadcrumbItems = [
+            ['name' => 'Beranda', 'url' => route('home')],
+            ['name' => 'Produk', 'url' => route('catalog.index')],
+        ];
+        if ($product->category) {
+            $breadcrumbItems[] = ['name' => $product->category->name, 'url' => route('catalog.index', ['category_slug' => $product->category->slug])];
+        }
+        $breadcrumbItems[] = ['name' => $product->name, 'url' => route('catalog.show', $product->slug)];
+        $seoSchemas[] = $this->seo->breadcrumbJsonLd($breadcrumbItems);
+
+        return view('pages.catalog.show', compact('product', 'related', 'reviews', 'reviewStats', 'seoMeta', 'seoSchemas'));
     }
 }

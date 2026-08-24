@@ -52,6 +52,9 @@ Route::prefix('v1')->group(function () {
     // Payment routes (mixed mode: customer-facing protected + webhook public)
     require __DIR__.'/api/v1/payment.php';
 
+    // FASE 4.5: Public contact + newsletter endpoints
+    require __DIR__.'/api/v1/contact.php';
+
     // Authenticated routes - butuh Sanctum token
     Route::middleware(['auth:sanctum'])->group(function () {
         require __DIR__.'/api/v1/customer.php';

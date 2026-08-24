@@ -11,7 +11,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register RouteServiceProvider explicitly (FASE 4.8)
+        $this->app->register(RouteServiceProvider::class);
     }
 
     /**

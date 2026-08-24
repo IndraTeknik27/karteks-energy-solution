@@ -8,9 +8,9 @@ use App\Http\Requests\Api\V1\Auth\RegisterRequest;
 use App\Http\Requests\Api\V1\Auth\UpdatePasswordRequest;
 use App\Http\Requests\Api\V1\Auth\UpdateProfileRequest;
 use App\Http\Resources\V1\UserResource;
+use App\Models\LoginAttempt;
 use App\Models\User;
 use App\Services\V1\CartService;
-use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -88,8 +88,22 @@ class AuthController extends Controller
         $data = $request->validated();
         $deviceName = $data['device_name'] ?? 'mobile-app';
         $remember = (bool) ($data['remember'] ?? false);
+        $email = strtolower(trim($data['email']));
+        $ip = $request->ip();
 
-        $throttleKey = Str::transliterate(Str::lower($data['email']).'|'.$request->ip());
+        // FASE 4.8: Brute force protection — block jika email atau IP throttled
+        if (LoginAttempt::isEmailThrottled($email, maxAttempts: 5, minutes: 15)) {
+            throw ValidationException::withMessages([
+                'email' => ['Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.'],
+            ]);
+        }
+        if (LoginAttempt::isIpThrottled($ip, maxAttempts: 20, minutes: 15)) {
+            throw ValidationException::withMessages([
+                'email' => ['Terlalu banyak percobaan login dari IP ini. Coba lagi nanti.'],
+            ]);
+        }
+
+        $throttleKey = Str::transliterate($email.'|'.$ip);
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
@@ -99,9 +113,13 @@ class AuthController extends Controller
             ]);
         }
 
-        $user = User::where('email', $data['email'])->first();
+        $user = User::where('email', $email)->first();
+        $passwordValid = $user && Hash::check($data['password'], $user->password);
 
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
+        // FASE 4.8: Record login attempt (success or failure)
+        LoginAttempt::record($email, $ip, $passwordValid, $request->userAgent());
+
+        if (! $passwordValid) {
             RateLimiter::hit($throttleKey, 60);
 
             throw ValidationException::withMessages([
@@ -116,6 +134,10 @@ class AuthController extends Controller
         }
 
         RateLimiter::clear($throttleKey);
+        LoginAttempt::where('email', $email)
+            ->where('successful', false)
+            ->where('attempted_at', '>=', now()->subMinutes(15))
+            ->delete();
 
         $user->tokens()
             ->where('name', $deviceName)

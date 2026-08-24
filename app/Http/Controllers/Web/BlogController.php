@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
 use App\Models\BlogCategory;
+use App\Services\V1\SeoService;
 use Illuminate\Http\Request;
 
 class BlogController extends Controller
 {
+    public function __construct(
+        protected SeoService $seo,
+    ) {}
+
     public function index(Request $request)
     {
         $query = Blog::query()
@@ -32,7 +37,19 @@ class BlogController extends Controller
             ->orderBy('sort')
             ->get();
 
-        return view('pages.blog.index', compact('blogs', 'categories'));
+        $seoMeta = $this->seo->generateMeta(null, [
+            'title' => 'Blog & Tips - KARTEKS ENERGY SOLUTION',
+            'description' => 'Tips, panduan, dan berita terbaru seputar energi terbarukan, kendaraan listrik, dan teknologi baterai dari KARTEKS.',
+            'canonical' => route('blog.index'),
+        ]);
+        $seoSchemas = [
+            $this->seo->breadcrumbJsonLd([
+                ['name' => 'Beranda', 'url' => route('home')],
+                ['name' => 'Blog', 'url' => route('blog.index')],
+            ]),
+        ];
+
+        return view('pages.blog.index', compact('blogs', 'categories', 'seoMeta', 'seoSchemas'));
     }
 
     public function show(string $slug)
@@ -57,6 +74,20 @@ class BlogController extends Controller
             ->limit(3)
             ->get();
 
-        return view('pages.blog.show', compact('blog', 'related'));
+        $seoMeta = $this->seo->generateMeta($blog);
+        $seoSchemas = [$this->seo->articleJsonLd($blog)];
+
+        // Breadcrumb JSON-LD
+        $breadcrumbItems = [
+            ['name' => 'Beranda', 'url' => route('home')],
+            ['name' => 'Blog', 'url' => route('blog.index')],
+        ];
+        if ($blog->category) {
+            $breadcrumbItems[] = ['name' => $blog->category->name, 'url' => route('blog.index', ['category_slug' => $blog->category->slug])];
+        }
+        $breadcrumbItems[] = ['name' => $blog->title, 'url' => route('blog.show', $blog->slug)];
+        $seoSchemas[] = $this->seo->breadcrumbJsonLd($breadcrumbItems);
+
+        return view('pages.blog.show', compact('blog', 'related', 'seoMeta', 'seoSchemas'));
     }
 }

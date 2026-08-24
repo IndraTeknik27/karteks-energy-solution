@@ -298,6 +298,80 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Shipping Configuration (FASE 4.7)
+    |--------------------------------------------------------------------------
+    | Provider active + manual rates table per courier.
+    | Set karteks.shipping.provider ke 'rajaongkir' atau 'biteship' untuk
+    | integrasi third-party API (perlu API key di .env).
+    */
+    'shipping' => [
+        'provider' => env('SHIPPING_PROVIDER', 'manual'),
+
+        'manual' => [
+            'couriers' => [
+                'jne' => [
+                    'name' => 'JNE',
+                    'services' => [
+                        'reg' => ['name' => 'Reguler', 'base_cost' => 9000, 'per_kg_cost' => 5000, 'etd_days' => '2-3'],
+                        'yes' => ['name' => 'YES (1 hari)', 'base_cost' => 18000, 'per_kg_cost' => 8000, 'etd_days' => '1'],
+                        'oke' => ['name' => 'Ongkos Kirim Ekonomis', 'base_cost' => 7000, 'per_kg_cost' => 4000, 'etd_days' => '3-5'],
+                    ],
+                ],
+                'pos' => [
+                    'name' => 'POS Indonesia',
+                    'services' => [
+                        'kilat' => ['name' => 'Paket Kilat', 'base_cost' => 8500, 'per_kg_cost' => 4800, 'etd_days' => '2-3'],
+                    ],
+                ],
+                'sicepat' => [
+                    'name' => 'SiCepat',
+                    'services' => [
+                        'reg' => ['name' => 'Reguler', 'base_cost' => 8000, 'per_kg_cost' => 4500, 'etd_days' => '2-3'],
+                        'best' => ['name' => 'Best (1 hari)', 'base_cost' => 16000, 'per_kg_cost' => 7000, 'etd_days' => '1'],
+                    ],
+                ],
+                'jnt' => [
+                    'name' => 'J&T Express',
+                    'services' => [
+                        'ez' => ['name' => 'EZ Regular', 'base_cost' => 8500, 'per_kg_cost' => 4800, 'etd_days' => '2-4'],
+                    ],
+                ],
+                'tiki' => [
+                    'name' => 'TIKI',
+                    'services' => [
+                        'reg' => ['name' => 'Reguler', 'base_cost' => 9500, 'per_kg_cost' => 5500, 'etd_days' => '2-3'],
+                        'ons' => ['name' => 'Over Night', 'base_cost' => 17000, 'per_kg_cost' => 7500, 'etd_days' => '1'],
+                    ],
+                ],
+            ],
+        ],
+
+        'rajaongkir' => [
+            'api_key' => env('RAJAONGKIR_API_KEY'),
+            'package' => env('RAJAONGKIR_PACKAGE', 'starter'),
+        ],
+
+        'biteship' => [
+            'api_key' => env('BITESHIP_API_KEY'),
+            'base_url' => 'https://api.biteship.com/v1',
+        ],
+
+        // Zone multipliers (same-island vs cross-island)
+        'zones' => [
+            'local' => ['multiplier' => 1.0, 'description' => 'Same island'],
+            'national' => ['multiplier' => 1.5, 'description' => 'Cross-island'],
+        ],
+
+        'default_origin_city' => env('SHIPPING_ORIGIN_CITY', 'Gowa'),
+
+        // Free shipping threshold (subtotal minimal untuk free shipping)
+        'free_shipping_threshold' => env('FREE_SHIPPING_THRESHOLD'),
+
+        'fallback_to_manual' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Firebase Cloud Messaging (Flutter Push Notification)
     |--------------------------------------------------------------------------
     */
@@ -369,6 +443,32 @@ return [
         'og_image_default' => null,
         'twitter_handle' => '@karteksenergy',
         'schema_type' => 'LocalBusiness',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Homepage Sections Configuration
+    |--------------------------------------------------------------------------
+    | Default section order, available types, dan fallback per-section.
+    | HomepageSection model juga punya typeOptions() yang di-cast ke constants.
+    */
+    'homepage_sections' => [
+        'enabled' => true,
+        'cache_ttl' => 300, // 5 menit cache untuk section data
+        'fallback_enabled' => true, // Jika section DB kosong, tampilkan fallback static dari home.blade.php
+        'section_partials' => [
+            'hero_banner' => 'partials.home-sections.hero-banner',
+            'featured_categories' => 'partials.home-sections.featured-categories',
+            'featured_products' => 'partials.home-sections.featured-products',
+            'ev_car' => 'partials.home-sections.category-showcase',
+            'ev_bike' => 'partials.home-sections.category-showcase',
+            'custom_battery_promo' => 'partials.home-sections.custom-battery-promo',
+            'services_grid' => 'partials.home-sections.services-grid',
+            'testimonials' => 'partials.home-sections.testimonials',
+            'blog_highlights' => 'partials.home-sections.blog-highlights',
+            'brand_logos' => 'partials.home-sections.brand-logos',
+            'custom_html' => 'partials.home-sections.custom-html',
+        ],
     ],
 
 ];

@@ -15,19 +15,19 @@ Route::prefix('auth')->group(function () {
 
     Route::middleware('guest')->group(function () {
         Route::post('/register', [AuthController::class, 'register'])
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:auth-strict')
             ->name('api.auth.register');
 
         Route::post('/login', [AuthController::class, 'login'])
-            ->middleware('throttle:5,1')
+            ->middleware('throttle:auth-strict')
             ->name('api.auth.login');
 
         Route::post('/forgot-password', [PasswordResetController::class, 'forgot'])
-            ->middleware('throttle:3,1')
+            ->middleware('throttle:auth-strict')
             ->name('api.auth.forgot');
 
         Route::post('/reset-password', [PasswordResetController::class, 'reset'])
-            ->middleware('throttle:5,1')
+            ->middleware('throttle:auth-strict')
             ->name('api.auth.reset');
     });
 
@@ -36,11 +36,15 @@ Route::prefix('auth')->group(function () {
         Route::post('/logout-all', [AuthController::class, 'logoutAll'])->name('api.auth.logout-all');
         Route::get('/me', [AuthController::class, 'me'])->name('api.auth.me');
         Route::post('/refresh', [AuthController::class, 'refresh'])->name('api.auth.refresh');
-        Route::put('/profile', [AuthController::class, 'updateProfile'])->name('api.auth.profile.update');
-        Route::put('/password', [AuthController::class, 'updatePassword'])->name('api.auth.password.update');
+        Route::put('/profile', [AuthController::class, 'updateProfile'])
+            ->middleware('throttle:auth-write')
+            ->name('api.auth.profile.update');
+        Route::put('/password', [AuthController::class, 'updatePassword'])
+            ->middleware('throttle:auth-write')
+            ->name('api.auth.password.update');
 
         Route::post('/email/resend', [EmailVerificationController::class, 'resend'])
-            ->middleware('throttle:3,1')
+            ->middleware('throttle:auth-strict')
             ->name('api.auth.email.resend');
 
         Route::get('/email/status', [EmailVerificationController::class, 'status'])->name('api.auth.email.status');

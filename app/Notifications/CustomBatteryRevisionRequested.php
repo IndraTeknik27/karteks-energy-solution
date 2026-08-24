@@ -2,58 +2,44 @@
 
 namespace App\Notifications;
 
+use App\Mail\CustomBattery\RevisionRequestedMail;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
-class CustomBatteryRevisionRequested extends Notification implements ShouldQueue
+class CustomBatteryRevisionRequested extends Notification
 {
     use Queueable;
 
-    public function __construct(
-        public string $requestNumber,
-        public int $revisionNumber,
-        public string $adminNote,
-        public ?array $fieldChanges = null,
-    ) {}
+    public function __construct(public \App\Models\CustomBatteryRevision $revision)
+    {
+    }
 
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): RevisionRequestedMail
     {
-        $mail = (new MailMessage)
-            ->subject("Revisi Diperlukan - {$this->requestNumber}")
-            ->greeting("Halo {$notifiable->name},")
-            ->line("Tim KARTEKS meminta revisi pada permintaan custom battery Anda.")
-            ->line("Nomor Request: {$this->requestNumber}")
-            ->line("Revisi ke: #{$this->revisionNumber}")
-            ->line("Catatan admin: {$this->adminNote}");
-
-        if (! empty($this->fieldChanges)) {
-            $mail->line('Field yang perlu diubah:');
-            foreach ($this->fieldChanges as $field => $expected) {
-                $label = ucfirst(str_replace('_', ' ', $field));
-                $mail->line("- {$label}: {$expected}");
-            }
-        }
-
-        return $mail
-            ->action('Lihat & Revisi', url('/dashboard/custom-battery/'.$this->requestNumber))
-            ->line('Mohon segera ditanggapi agar permintaan dapat diproses.');
+        return new RevisionRequestedMail($this->revision);
     }
 
-    public function toArray(object $notifiable): array
+    public function toDatabase(object $notifiable): array
     {
         return [
             'type' => 'custom_battery_revision_requested',
-            'request_number' => $this->requestNumber,
-            'revision_number' => $this->revisionNumber,
-            'admin_note' => $this->adminNote,
-            'field_changes' => $this->fieldChanges,
+            'request_id' => $this->revision->request_id,
+            'request_number' => $this->revision->request?->request_number,
+            'title' => 'Revisi Diminta untuk Custom Battery',
+            'message' => "Request #{$this->revision->request?->request_number} butuh revisi. Cek catatan admin.",
+            'action_url' => "/dashboard/custom-battery/{$this->revision->request_id}",
+            'icon' => '📝',
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }

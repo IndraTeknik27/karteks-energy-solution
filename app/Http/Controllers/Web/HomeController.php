@@ -4,92 +4,68 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
-use App\Models\Blog;
-use App\Models\Category;
 use App\Models\Faq;
-use App\Models\Product;
-use App\Models\Service;
-use App\Models\Testimonial;
+use App\Services\V1\HomepageService;
+use App\Services\V1\SeoService;
 
 class HomeController extends Controller
 {
+    public function __construct(
+        protected HomepageService $homepage,
+        protected SeoService $seo,
+    ) {}
+
     public function index()
     {
-        $heroBanners = Banner::active()->position('home_hero')->orderBy('sort')->limit(5)->get();
-        $secondaryBanners = Banner::active()->position('home_secondary')->orderBy('sort')->limit(3)->get();
+        // Load sections dari HomepageService (DB-driven + cache).
+        $sections = $this->homepage->loadSections();
 
-        $featuredProducts = Product::query()
-            ->where('status', 'published')
-            ->where('is_featured', true)
-            ->with(['category', 'brand', 'images'])
-            ->latest('published_at')
-            ->limit(8)
-            ->get();
-
-        $newArrivals = Product::query()
-            ->where('status', 'published')
-            ->where('is_new_arrival', true)
-            ->with(['category', 'brand', 'images'])
-            ->latest('published_at')
-            ->limit(4)
-            ->get();
-
-        $bestSellers = Product::query()
-            ->where('status', 'published')
-            ->where('is_bestseller', true)
-            ->with(['category', 'brand', 'images'])
-            ->orderByDesc('sales_count')
-            ->limit(4)
-            ->get();
-
-        $topCategories = Category::query()
-            ->active()
-            ->roots()
-            ->withCount(['products' => fn ($q) => $q->where('status', 'published')])
-            ->with(['children' => fn ($q) => $q->active()->limit(6)])
+        // Banners popup (jika ada, tampilkan via Alpine.js state).
+        $popupBanners = Banner::active()
+            ->position(Banner::POSITION_POPUP)
             ->orderBy('sort')
-            ->limit(8)
+            ->limit(1)
             ->get();
 
-        $featuredServices = Service::query()
-            ->active()
-            ->where('is_featured', true)
-            ->with('category')
-            ->orderBy('sort')
-            ->limit(6)
-            ->get();
+        // FAQ untuk footer section (fallback jika tidak ada section di DB).
+        $faqs = Faq::query()->active()->orderBy('sort')->limit(6)->get();
 
-        $testimonials = Testimonial::query()
-            ->active()
-            ->orderByDesc('is_featured')
-            ->orderBy('sort')
-            ->limit(6)
-            ->get();
+        // Hero brand showcase kecil untuk hero utama (fallback jika sections kosong).
+        $heroFeaturedProducts = $this->homepage->getBannersByPosition(Banner::POSITION_HOME_HERO, 0)->isNotEmpty()
+            ? null
+            : \App\Models\Product::query()
+                ->where('status', 'published')
+                ->where('is_featured', true)
+                ->with(['category', 'brand'])
+                ->latest('published_at')
+                ->limit(4)
+                ->get();
 
-        $faqs = Faq::query()
-            ->active()
-            ->orderBy('sort')
-            ->limit(6)
-            ->get();
+        // SEO meta tags untuk homepage
+        $seoMeta = $this->seo->generateMeta(null, [
+            'title' => 'KARTEKS ENERGY SOLUTION - Solusi Energi Terbarukan & Kendaraan Listrik',
+            'description' => 'KARTEKS ENERGY SOLUTION - Solusi energi terbarukan, kendaraan listrik, custom battery, dan konsultasi profesional di Sulawesi Selatan.',
+            'canonical' => route('home'),
+        ]);
 
-        $latestBlogs = Blog::query()
-            ->published()
-            ->with(['category', 'author'])
-            ->latest('published_at')
-            ->limit(3)
-            ->get();
+        // JSON-LD schemas: Organization + WebSite (homepage)
+        $seoSchemas = [
+            $this->seo->organizationJsonLd(),
+            $this->seo->websiteJsonLd(),
+        ];
+
+        // FAQ schema jika ada FAQ (untuk SEO rich snippet)
+        if ($faqs->isNotEmpty()) {
+            $seoSchemas[] = $this->seo->faqJsonLd($faqs);
+        }
 
         return view('pages.home', compact(
-            'heroBanners',
-            'secondaryBanners',
-            'featuredProducts',
-            'newArrivals',
-            'bestSellers',
-            'topCategories',
-            'featuredServices',
-            'testimonials',
+            'sections',
+            'popupBanners',
             'faqs',
-            'latestBlogs',
+            'heroFeaturedProducts',
+            'seoMeta',
+            'seoSchemas',
         ));
     }
 }

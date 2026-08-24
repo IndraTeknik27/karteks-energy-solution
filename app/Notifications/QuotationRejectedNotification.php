@@ -2,44 +2,44 @@
 
 namespace App\Notifications;
 
+use App\Mail\Quotation\QuotationRejectedMail;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
-class QuotationRejectedNotification extends Notification implements ShouldQueue
+class QuotationRejectedNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(
-        public string $quotationNumber,
-        public string $customerName,
-        public string $reason,
-    ) {}
+    public function __construct(public \App\Models\Quotation $quotation)
+    {
+    }
 
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): QuotationRejectedMail
     {
-        return (new MailMessage)
-            ->subject("Quotation Ditolak - {$this->quotationNumber}")
-            ->greeting("Halo Tim KARTEKS,")
-            ->line("Customer {$this->customerName} menolak quotation.")
-            ->line("Nomor Quotation: {$this->quotationNumber}")
-            ->line("Alasan penolakan: {$this->reason}")
-            ->action('Lihat Detail', url('/admin/quotations/'.$this->quotationNumber));
+        return new QuotationRejectedMail($this->quotation);
     }
 
-    public function toArray(object $notifiable): array
+    public function toDatabase(object $notifiable): array
     {
         return [
             'type' => 'quotation_rejected',
-            'quotation_number' => $this->quotationNumber,
-            'customer_name' => $this->customerName,
-            'reason' => $this->reason,
+            'quotation_id' => $this->quotation->id,
+            'quotation_number' => $this->quotation->quotation_number,
+            'title' => 'Quotation Ditolak',
+            'message' => "Customer menolak Quotation #{$this->quotation->quotation_number}.",
+            'action_url' => "/admin/quotations/{$this->quotation->id}",
+            'icon' => '✗',
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }

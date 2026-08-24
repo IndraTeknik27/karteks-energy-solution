@@ -35,7 +35,7 @@ class ProfileAddressController extends Controller
             $user->addresses()->create($data);
         });
 
-        return redirect()->route('addresses.index')->with('success', 'Alamat berhasil ditambahkan.');
+        return redirect()->route('dashboard.addresses')->with('success', 'Alamat berhasil ditambahkan.');
     }
 
     public function edit(Request $request, Address $address)
@@ -57,7 +57,7 @@ class ProfileAddressController extends Controller
             $address->fill($data)->save();
         });
 
-        return redirect()->route('addresses.index')->with('success', 'Alamat berhasil diperbarui.');
+        return redirect()->route('dashboard.addresses')->with('success', 'Alamat berhasil diperbarui.');
     }
 
     public function destroy(Request $request, Address $address)
@@ -69,7 +69,7 @@ class ProfileAddressController extends Controller
         if ($wasPrimary) {
             Address::where('customer_id', $customerId)->orderByDesc('updated_at')->limit(1)->update(['is_primary' => true]);
         }
-        return redirect()->route('addresses.index')->with('success', 'Alamat berhasil dihapus.');
+        return redirect()->route('dashboard.addresses')->with('success', 'Alamat berhasil dihapus.');
     }
 
     public function setPrimary(Request $request, Address $address)
@@ -80,7 +80,7 @@ class ProfileAddressController extends Controller
             $user->addresses()->where('id', '!=', $address->id)->update(['is_primary' => false]);
             $address->update(['is_primary' => true]);
         });
-        return redirect()->route('addresses.index')->with('success', 'Alamat utama diperbarui.');
+        return redirect()->route('dashboard.addresses')->with('success', 'Alamat utama diperbarui.');
     }
 
     protected function validated(Request $request): array

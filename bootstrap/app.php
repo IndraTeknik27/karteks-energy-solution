@@ -23,10 +23,19 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust proxies (untuk HTTPS di belakang Nginx/Apache Laragon)
         $middleware->trustProxies(at: '*');
 
+        // FASE 4.8: Global security headers (apply to ALL web routes)
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
+        // FASE 4.8: Alias for validate.file.upload middleware
+        $middleware->alias([
+            'file.validate' => \App\Http\Middleware\ValidateFileUpload::class,
+        ]);
+
         // CORS untuk API consumer (Flutter, dll)
         $middleware->validateCsrfTokens(except: [
             'api/*',
             'api/v1/payments/midtrans/notification',
+            'banners/*/click', // fire-and-forget tracking endpoint
         ]);
 
         // API rate limit aliases

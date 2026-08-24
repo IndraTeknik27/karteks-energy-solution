@@ -18,9 +18,19 @@ use App\Http\Controllers\Web\PaymentController;
 use App\Http\Controllers\Web\CustomBatteryController;
 use App\Http\Controllers\Web\QuotationController;
 use App\Http\Controllers\Web\ServiceBookingController;
+use App\Http\Controllers\Web\BannerClickController;
+use App\Http\Controllers\Web\SitemapController;
+use App\Http\Controllers\Web\RobotsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// SEO: Sitemap + Robots (public, no auth)
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap.xml');
+Route::get('/robots.txt', [RobotsController::class, 'index'])->name('robots.txt');
+
+// Banner click tracking (public, fire-and-forget endpoint)
+Route::post('/banners/{banner}/click', [BannerClickController::class, 'click'])->name('public.banner.click');
 
 // Catalog
 Route::get('/products', [CatalogController::class, 'index'])->name('catalog.index');

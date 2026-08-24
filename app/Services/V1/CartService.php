@@ -264,53 +264,61 @@ class CartService
         return $cart;
     }
 
-    public function calculateShipping(Cart $cart, string $city, string $courier = 'jne'): array
+    public function calculateShipping(Cart $cart, string $city, string $courier = null): array
     {
-        $subtotal = (float) $cart->subtotal;
+        // FASE 4.7: delegate ke ShippingService (configurable provider)
+        $shippingService = app(\App\Services\Shipping\ShippingService::class);
 
-        $freeThreshold = (float) config('karteks.shipping.free_shipping_threshold', 0);
+        $originCity = config('karteks.shipping.default_origin_city', 'Gowa');
+        $weight = $this->calculateTotalWeight($cart);
 
-        $baseOptions = [
-            ['code' => 'REG', 'name' => 'Reguler', 'eta_days' => 3],
-            ['code' => 'YES', 'name' => 'Yakin Esok Sampai', 'eta_days' => 1],
-            ['code' => 'OKE', 'name' => 'Ongkos Kirim Ekonomis', 'eta_days' => 5],
-        ];
+        $quote = $shippingService->calculate($originCity, $city, $weight);
 
         $results = [];
-        foreach ($baseOptions as $opt) {
-            $cost = match ($courier) {
-                'jne' => match ($opt['code']) {
-                    'YES' => 25000,
-                    'REG' => 18000,
-                    'OKE' => 12000,
-                },
-                'pos' => match ($opt['code']) {
-                    'YES' => 22000,
-                    'REG' => 16000,
-                    'OKE' => 11000,
-                },
-                'tiki' => match ($opt['code']) {
-                    'YES' => 26000,
-                    'REG' => 19000,
-                    'OKE' => 13000,
-                },
-                default => 18000,
-            };
+        $freeThreshold = (float) config('karteks.shipping.free_shipping_threshold', 0);
+        $subtotal = (float) $cart->subtotal;
+        $isFree = $freeThreshold > 0 && $subtotal >= $freeThreshold;
 
-            $isFree = $freeThreshold > 0 && $subtotal >= $freeThreshold;
+        foreach ($quote->rates as $rate) {
+            if (! $rate instanceof \App\Services\Shipping\ShippingRate) {
+                continue;
+            }
+            // Filter by courier if specified
+            if ($courier && $rate->courierCode !== $courier) {
+                continue;
+            }
+
+            $cost = $isFree ? 0 : $rate->cost;
 
             $results[] = [
-                'courier' => strtoupper($courier),
-                'service' => $opt['code'],
-                'name' => $opt['name'],
-                'eta_days' => $opt['eta_days'],
-                'cost' => $isFree ? 0 : $cost,
+                'courier' => strtoupper($rate->courierCode),
+                'courier_name' => $rate->courierName,
+                'service' => $rate->service,
+                'service_name' => $rate->serviceName,
+                'cost' => $cost,
+                'etd_days' => $rate->etdDays,
                 'is_free' => $isFree,
-                'free_threshold' => $isFree ? $freeThreshold : null,
             ];
         }
 
-        return $results;
+        return [
+            'origin' => $originCity,
+            'destination' => $city,
+            'weight' => $weight,
+            'provider' => $quote->providerCode,
+            'options' => $results,
+            'free_shipping_threshold' => $freeThreshold,
+            'is_free_shipping' => $isFree,
+        ];
+    }
+
+    /**
+     * Calculate total cart weight in grams (default 1000g per item).
+     */
+    protected function calculateTotalWeight(Cart $cart): int
+    {
+        // Default 1000g per product (1kg). Bisa di-extend via product.weight.
+        return (int) $cart->items->sum(fn ($i) => ($i->itemable?->weight ?? 1) * 1000 * $i->qty);
     }
 
     public function generateSessionId(): string

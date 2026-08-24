@@ -14,6 +14,8 @@ class DatabaseSeeder extends Seeder
             SiteSettingSeeder::class,
             Catalog\CategorySeeder::class,
             Catalog\ServiceSeeder::class,
+            Catalog\ContentSeeder::class,
+            HomepageSectionSeeder::class,
         ]);
     }
 }

@@ -22,13 +22,18 @@
         </div>
     @endif
 
+@php
+    $shippingOptionsJson = json_encode($shippingOptions);
+    $couponCodeJson = json_encode($cart->coupon_code ?? '');
+@endphp
+
     <form method="POST" action="{{ route('checkout.place') }}" x-data="{
         selectedAddressId: {{ $defaultAddress?->id ?? 'null' }},
         selectedCourier: 'jne',
-        shippingOptions: @json($shippingOptions),
+        shippingOptions: {{ $shippingOptionsJson }},
         shippingCost: 0,
         selectedService: 'REG',
-        couponCode: @json($cart->coupon_code ?? ''),
+        couponCode: {{ $couponCodeJson }},
         subtotal: {{ (float) $cart->subtotal }},
         discount: {{ (float) $cart->discount }},
         get total() {
@@ -42,7 +47,7 @@
         },
         recalcShipping() {
             if (this.selectedAddressId) {
-                fetch('{{ route('checkout.preview') }}', {
+                fetch('{{ route("checkout.preview") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

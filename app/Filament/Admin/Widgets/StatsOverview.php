@@ -2,51 +2,46 @@
 
 namespace App\Filament\Admin\Widgets;
 
-use App\Models\Category;
-use App\Models\ContactMessage;
-use App\Models\Order;
-use App\Models\Product;
-use App\Models\Service;
-use App\Models\User;
-use Filament\Widgets\StatsOverviewWidget;
+use App\Services\V1\DashboardService;
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
-class StatsOverview extends StatsOverviewWidget
+class StatsOverview extends BaseWidget
 {
+    protected static ?int $sort = 1;
+
     protected function getStats(): array
     {
-        return [
-            Stat::make('Total Products', Product::count())
-                ->description('Published: '.Product::where('status', 'published')->count())
-                ->descriptionIcon('heroicon-m-arrow-trending-up')
-                ->color('success')
-                ->icon('heroicon-o-shopping-bag'),
+        $service = app(DashboardService::class);
+        $stats = $service->statsOverview(30);
 
-            Stat::make('Total Categories', Category::count())
-                ->description('Active: '.Category::where('is_active', true)->count())
-                ->descriptionIcon('heroicon-m-squares-2x2')
-                ->color('info')
-                ->icon('heroicon-o-squares-2x2'),
+        $result = [];
+        foreach ($stats as $stat) {
+            $value = $stat['value'];
+            $valueFormatted = match ($stat['format']) {
+                'currency' => 'Rp '.number_format($value, 0, ',', '.'),
+                default => number_format($value, 0, ',', '.'),
+            };
 
-            Stat::make('Total Services', Service::count())
-                ->description('Active: '.Service::where('is_active', true)->count())
-                ->color('warning')
-                ->icon('heroicon-o-wrench-screwdriver'),
+            $change = $stat['change'];
+            $changeIcon = $change >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down';
+            $changeColor = $change >= 0 ? 'success' : 'danger';
+            $changeText = ($change >= 0 ? '+' : '').$change.'%';
 
-            Stat::make('Total Orders', Order::count())
-                ->description('Pending: '.Order::whereIn('status', ['pending_payment', 'payment_pending'])->count())
-                ->color('primary')
-                ->icon('heroicon-o-shopping-cart'),
+            $statObj = Stat::make($stat['label'], $valueFormatted)
+                ->description($stat['description'].' • '.$changeText.' vs kemarin')
+                ->descriptionIcon($changeIcon)
+                ->color($changeColor)
+                ->icon($stat['icon']);
 
-            Stat::make('Total Customers', User::role('customer')->count())
-                ->description('Active: '.User::role('customer')->where('is_active', true)->count())
-                ->color('success')
-                ->icon('heroicon-o-users'),
+            // Add sparkline if available
+            if (! empty($stat['sparkline']) && count($stat['sparkline']) > 1) {
+                $statObj->chart($stat['sparkline']);
+            }
 
-            Stat::make('Contact Messages', ContactMessage::count())
-                ->description('Unread: '.ContactMessage::whereNull('read_at')->count())
-                ->color('danger')
-                ->icon('heroicon-o-envelope'),
-        ];
+            $result[] = $statObj;
+        }
+
+        return $result;
     }
 }

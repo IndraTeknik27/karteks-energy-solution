@@ -2,63 +2,50 @@
 
 namespace App\Notifications;
 
+use App\Mail\ServiceBooking\BookingCancelledMail;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
-class ServiceBookingCancelledNotification extends Notification implements ShouldQueue
+class ServiceBookingCancelledNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(
-        public string $bookingNumber,
-        public string $serviceName,
-        public ?\Carbon\Carbon $scheduledAt = null,
-        public string $reason = '',
-        public string $cancelledBy = 'system',
-    ) {}
+    public function __construct(public \App\Models\ServiceBooking $booking, public string $recipient = 'customer')
+    {
+    }
 
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): BookingCancelledMail
     {
-        $mail = (new MailMessage)
-            ->subject("Booking Dibatalkan - {$this->bookingNumber}")
-            ->greeting("Halo {$notifiable->name},")
-            ->line("Booking service telah dibatalkan.")
-            ->line("Nomor Booking: {$this->bookingNumber}")
-            ->line("Layanan: {$this->serviceName}");
-
-        if ($this->scheduledAt) {
-            $mail->line("Jadwal Awal: {$this->scheduledAt->format('d F Y, H:i')}");
-        }
-
-        $mail->line("Dibatalkan oleh: ".ucfirst($this->cancelledBy));
-
-        if ($this->reason) {
-            $mail->line("Alasan: {$this->reason}");
-        }
-
-        $actionUrl = $this->cancelledBy === 'customer'
-            ? url('/dashboard/bookings')
-            : url('/admin/service-bookings/'.$this->bookingNumber);
-
-        return $mail->action('Lihat Detail', $actionUrl);
+        return new BookingCancelledMail($this->booking, $this->recipient);
     }
 
-    public function toArray(object $notifiable): array
+    public function toDatabase(object $notifiable): array
     {
+        $message = $this->recipient === 'admin'
+            ? "Customer membatalkan Booking #{$this->booking->booking_number}"
+            : "Booking #{$this->booking->booking_number} telah dibatalkan.";
+
         return [
             'type' => 'service_booking_cancelled',
-            'booking_number' => $this->bookingNumber,
-            'service_name' => $this->serviceName,
-            'scheduled_at' => $this->scheduledAt?->toIso8601String(),
-            'reason' => $this->reason,
-            'cancelled_by' => $this->cancelledBy,
+            'booking_id' => $this->booking->id,
+            'booking_number' => $this->booking->booking_number,
+            'title' => 'Booking Dibatalkan',
+            'message' => $message,
+            'action_url' => $this->recipient === 'admin'
+                ? "/admin/service-bookings/{$this->booking->id}"
+                : "/dashboard/booking/{$this->booking->id}",
+            'icon' => '✗',
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toDatabase($notifiable));
     }
 }

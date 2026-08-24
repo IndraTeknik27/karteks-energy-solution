@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Service;
+use App\Services\V1\SeoService;
 use Illuminate\Http\Request;
 
 class ServicePageController extends Controller
 {
+    public function __construct(
+        protected SeoService $seo,
+    ) {}
+
     public function index(Request $request)
     {
         $query = Service::query()->active()->with('category')->orderBy('sort')->orderBy('name');
@@ -29,7 +34,19 @@ class ServicePageController extends Controller
             ->orderBy('sort')
             ->get();
 
-        return view('pages.services.index', compact('services', 'categories'));
+        $seoMeta = $this->seo->generateMeta(null, [
+            'title' => 'Layanan & Jasa - KARTEKS ENERGY SOLUTION',
+            'description' => 'Layanan profesional KARTEKS: konsultasi EV, custom battery, instalasi solar, maintenance, dan lainnya.',
+            'canonical' => route('services.index'),
+        ]);
+        $seoSchemas = [
+            $this->seo->breadcrumbJsonLd([
+                ['name' => 'Beranda', 'url' => route('home')],
+                ['name' => 'Layanan', 'url' => route('services.index')],
+            ]),
+        ];
+
+        return view('pages.services.index', compact('services', 'categories', 'seoMeta', 'seoSchemas'));
     }
 
     public function show(string $slug)
@@ -51,6 +68,16 @@ class ServicePageController extends Controller
             ->limit(4)
             ->get();
 
-        return view('pages.services.show', compact('service', 'related'));
+        $seoMeta = $this->seo->generateMeta($service);
+        $seoSchemas = [
+            $this->seo->serviceJsonLd($service),
+            $this->seo->breadcrumbJsonLd([
+                ['name' => 'Beranda', 'url' => route('home')],
+                ['name' => 'Layanan', 'url' => route('services.index')],
+                ['name' => $service->name, 'url' => route('services.show', $service->slug)],
+            ]),
+        ];
+
+        return view('pages.services.show', compact('service', 'related', 'seoMeta', 'seoSchemas'));
     }
 }

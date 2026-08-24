@@ -83,3 +83,5 @@ Route::prefix('settings')->group(function () {
     Route::get('/', [SiteSettingController::class, 'index'])->name('api.settings.index');
     Route::get('/shipping', [ShippingController::class, 'index'])->name('api.settings.shipping');
 });
+
+Route::post('/shipping/calculate', [ShippingController::class, 'calculate'])->name('api.shipping.calculate');

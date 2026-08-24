@@ -2,6 +2,10 @@
 
 namespace App\Services\V1;
 
+use App\Mail\Order\OrderDeliveredMail;
+use App\Mail\Order\OrderPaidMail;
+use App\Mail\Order\OrderPlacedMail;
+use App\Mail\Order\OrderShippedMail;
 use App\Models\Address;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
@@ -12,6 +16,7 @@ use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use InvalidArgumentException;
 
 class OrderService
@@ -40,6 +45,9 @@ class OrderService
 
             return $order->load(['items', 'statusHistories', 'customer']);
         });
+
+        // FASE 4.5: send branded OrderPlaced email (queued)
+        $this->sendOrderEmail($order->fresh(['items', 'customer']), 'placed');
 
         return $order;
     }
@@ -565,8 +573,60 @@ class OrderService
                 'changed_by_role' => 'admin',
             ]);
 
-            return $order->fresh();
+            $order = $order->fresh();
+
+            // FASE 4.5: send branded email per status transition
+            $this->sendOrderEmailOnTransition($order, $newStatus);
+
+            return $order;
         });
+    }
+
+    /**
+     * FASE 4.5: send branded Order email after placeOrder.
+     */
+    protected function sendOrderEmail(Order $order, string $stage): void
+    {
+        try {
+            $customer = $order->customer;
+            if (! $customer || ! $customer->email) {
+                return;
+            }
+            $mail = match ($stage) {
+                'placed' => new OrderPlacedMail($order),
+                default => null,
+            };
+            if ($mail) {
+                Mail::to($customer->email, $customer->name)->queue($mail);
+            }
+        } catch (\Throwable $e) {
+            // Log tapi jangan gagalkan order flow
+            \Log::warning('Order email gagal dikirim: '.$e->getMessage(), ['order_id' => $order->id]);
+        }
+    }
+
+    /**
+     * FASE 4.5: send branded email per adminTransition.
+     */
+    protected function sendOrderEmailOnTransition(Order $order, string $newStatus): void
+    {
+        try {
+            $customer = $order->customer;
+            if (! $customer || ! $customer->email) {
+                return;
+            }
+            $mail = match ($newStatus) {
+                'paid' => new OrderPaidMail($order),
+                'shipped' => new OrderShippedMail($order),
+                'delivered' => new OrderDeliveredMail($order),
+                default => null,
+            };
+            if ($mail) {
+                Mail::to($customer->email, $customer->name)->queue($mail);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Order transition email gagal dikirim: '.$e->getMessage(), ['order_id' => $order->id]);
+        }
     }
 
     protected function getAvailableStock(Model $itemable): int

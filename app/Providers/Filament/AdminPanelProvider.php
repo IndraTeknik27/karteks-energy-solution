@@ -63,6 +63,14 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\Filament\Admin\Widgets')
             ->widgets([
+                \App\Filament\Admin\Widgets\StatsOverview::class,
+                \App\Filament\Admin\Widgets\RevenueChartWidget::class,
+                \App\Filament\Admin\Widgets\OrdersChartWidget::class,
+                \App\Filament\Admin\Widgets\LowStockTableWidget::class,
+                \App\Filament\Admin\Widgets\TopProductsTableWidget::class,
+                \App\Filament\Admin\Widgets\LatestOrdersWidget::class,
+                \App\Filament\Admin\Widgets\CustomBatteryStatsWidget::class,
+                \App\Filament\Admin\Widgets\ServiceBookingWidget::class,
                 AccountWidget::class,
             ])
             ->middleware([
