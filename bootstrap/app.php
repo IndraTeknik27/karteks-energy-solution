@@ -20,8 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // API middleware group - Sanctum untuk SPA & mobile
         $middleware->statefulApi();
 
-        // Trust proxies (untuk HTTPS di belakang Nginx/Apache Laragon)
+        // Trust Cloudflare proxy headers (production only)
+        // Override default trustProxies(at: '*') yang trust SEMUA proxy.
+        // Middleware ini cuma trust X-Forwarded-* kalau REMOTE_ADDR ada di
+        // Cloudflare IP ranges, dan pakai CF-Connecting-IP sebagai real client IP.
         $middleware->trustProxies(at: '*');
+        $middleware->prepend(\App\Http\Middleware\CloudflareProxyTrust::class);
 
         // FASE 4.8: Global security headers (apply to ALL web routes)
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);

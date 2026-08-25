@@ -54,4 +54,9 @@ class BlogResource extends Resource
             'edit' => EditBlog::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['author:id,name', 'category:id,name']);
+    }
 }

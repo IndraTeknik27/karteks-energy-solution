@@ -63,4 +63,9 @@ class QuotationResource extends Resource
             'edit' => EditQuotation::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['customer:id,name', 'creator:id,name']);
+    }
 }

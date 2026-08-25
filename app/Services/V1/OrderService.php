@@ -44,11 +44,11 @@ class OrderService
             $this->recordInitialStatusHistory($order, $user);
             $this->clearCart($cart);
 
-            return $order->load(['items', 'statusHistories', 'customer']);
+            return $order->load(['items.itemable', 'statusHistories', 'customer']);
         });
 
         // FASE 4.5: send branded OrderPlaced email (queued)
-        $this->sendOrderEmail($order->fresh(['items', 'customer']), 'placed');
+        $this->sendOrderEmail($order->fresh(['items.itemable', 'customer']), 'placed');
 
         return $order;
     }
@@ -80,7 +80,7 @@ class OrderService
                 'changed_by_role' => $changedBy ? ($changedBy->isAdmin() ? 'admin' : 'customer') : 'customer',
             ]);
 
-            return $order->fresh(['items', 'statusHistories']);
+            return $order->fresh(['items.itemable', 'statusHistories']);
         });
     }
 

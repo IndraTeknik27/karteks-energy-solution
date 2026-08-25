@@ -45,4 +45,9 @@ class ShipmentResource extends Resource
             'view' => ViewShipment::route('/{record}'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['order:id,order_number']);
+    }
 }

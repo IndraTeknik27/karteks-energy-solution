@@ -48,4 +48,9 @@ class PaymentResource extends Resource
             'index' => ListPayments::route('/'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['order:id,order_number']);
+    }
 }

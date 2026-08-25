@@ -56,4 +56,9 @@ class ReviewResource extends Resource
             'view' => ViewReview::route('/{record}'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['product:id,name', 'customer:id,name']);
+    }
 }

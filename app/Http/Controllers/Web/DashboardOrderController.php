@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order;
 use App\Services\V1\OrderService;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
@@ -61,7 +60,7 @@ class DashboardOrderController extends Controller
     {
         $order = $request->user()->orders()
             ->where('order_number', $orderNumber)
-            ->with('items')
+            ->with(['items.itemable'])
             ->first();
 
         if (! $order) {

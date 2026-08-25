@@ -45,4 +45,9 @@ class ServiceBookingResource extends Resource
             'view' => ViewServiceBooking::route('/{record}'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['customer:id,name', 'service:id,name', 'technician:id,name']);
+    }
 }

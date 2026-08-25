@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\Cache\CatalogSidebarCacheService;
 use App\Services\V1\SeoService;
 use Illuminate\Http\Request;
 
@@ -69,8 +70,9 @@ class CatalogController extends Controller
         $perPage = min((int) $request->input('per_page', 12), 60);
         $products = $query->paginate($perPage)->withQueryString();
 
-        $categories = Category::active()->roots()->orderBy('sort')->get();
-        $brands = Brand::active()->orderBy('sort')->get();
+        // Sidebar data — cached 1 jam, invalidated by CategoryObserver + BrandObserver
+        $categories = collect(CatalogSidebarCacheService::getCategories());
+        $brands = collect(CatalogSidebarCacheService::getBrands());
 
         $currentCategory = null;
         if ($request->filled('category_id')) {

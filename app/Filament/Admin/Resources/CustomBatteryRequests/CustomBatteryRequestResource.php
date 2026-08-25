@@ -45,4 +45,9 @@ class CustomBatteryRequestResource extends Resource
             'view' => ViewCustomBatteryRequest::route('/{record}'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['customer:id,name']);
+    }
 }

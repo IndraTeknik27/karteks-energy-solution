@@ -640,6 +640,10 @@ php artisan view:cache
 
 ### Nginx Config
 
+> **AAPanel users**: see [deploy/aapanel-nginx.conf](deploy/aapanel-nginx.conf) — tuned for `/www/wwwroot/karteks-energy-solution` paths, PHP-FPM socket di `/tmp/php-cgi-82.sock`, storage path mapping, dan Cloudflare real IP hints. Salin ke `/www/server/panel/vhost/nginx/karteks.conf`.
+>
+> **Cloudflare Tunnel users**: lihat [Production Hardening](#production-hardening-fase-6) section di bawah untuk setup lengkap.
+
 ```nginx
 server {
     listen 80;
@@ -749,6 +753,70 @@ MIDTRANS_CLIENT_KEY=your_production_client_key
 - [ ] Scheduler cron entry added
 - [ ] `LOG_LEVEL=error` (not `debug`)
 - [ ] SecurityHeaders middleware active (CSP blocks XSS)
+
+---
+
+## Production Hardening (FASE 6)
+
+Optimizations dan safeguards yang sudah di-apply untuk production traffic. Untuk deploy guide lengkap khusus AAPanel + Cloudflare Tunnel, lihat **[deploy/DEPLOY_AAPANEL_CLOUDFLARE.md](deploy/DEPLOY_AAPANEL_CLOUDFLARE.md)** (~400 lines).
+
+### Performance — N+1 Fixes
+
+Semua Filament Resources sudah punya `getEloquentQuery()` override dengan eager load relasi yang dipakai di table columns. Di `OrderService::placeOrder()` dan `DashboardOrderController::invoice()` sudah preload `items.itemable` (morphTo) sebelum di-loop.
+
+### Performance — Composite Indexes
+
+Migration `2026_08_25_080000_add_production_hardening_indexes.php` adds 4 indexes untuk production-critical queries:
+
+- `orders[status, created_at]` — Dashboard stats
+- `orders[customer_id, created_at]` — User order list pagination
+- `products[status, published_at]` — Catalog default sort (latest published)
+- `order_status_histories[order_id, created_at]` — Order detail history timeline
+
+### Performance — Redis Cache Layer
+
+`app/Services/Cache/CatalogSidebarCacheService.php` — Cache sidebar data (categories + brands tree) selama 1 jam. Auto-invalidated oleh `CategoryObserver` + `BrandObserver` saat admin save/delete.
+
+Set di `.env`:
+```env
+CACHE_STORE=redis
+REDIS_CLIENT=phpredis
+REDIS_CACHE_DB=1
+REDIS_SESSION_DB=2
+REDIS_QUEUE_DB=3
+```
+(DB 0 = default connection, 1 = cache, 2 = session, 3 = queue — biar bisa flush salah satu tanpa affecting yang lain)
+
+### Security — Cloudflare Proxy Trust
+
+`app/Http/Middleware/CloudflareProxyTrust.php` override default `trustProxies(at: '*')` (yang trust SEMUA proxy, security hole) dengan trust **hanya Cloudflare IP ranges** (IPv4 + IPv6 di-hardcode dari `cloudflare.com/ips`). Production-only. Pakai `CF-Connecting-IP` untuk real client IP → rate limiter dan audit log jadi akurat.
+
+### Security — Static Asset Caching
+
+`app/Http/Middleware/StaticAssetCache.php` defense-in-depth layer untuk `/storage/*` yang somehow bocor ke Laravel. Set `Cache-Control: public, max-age=31536000, immutable`. Primary caching tetap di Nginx + Cloudflare.
+
+### Production .env Multi-DB
+
+`.env.production.example` sekarang punya Redis multi-DB config. Composer script + Artisan commands harus pakai `php artisan optimize:clear` setelah update.
+
+### What to do at deploy
+
+```bash
+# 1. Migrate composite indexes
+php artisan migrate
+
+# 2. Optimize for production
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan event:cache
+
+# 3. Restart queue workers to pick up new code
+sudo supervisorctl restart karteks-worker:*
+
+# 4. Reload Nginx config
+sudo nginx -t && sudo nginx -s reload
+```
 
 ---
 

@@ -39,6 +39,14 @@ class ProductResource extends Resource
         return ProductsTable::configure($table);
     }
 
+    /**
+     * Eager load relations untuk mencegah N+1 di table columns (category.name, brand.name).
+     */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['category:id,name', 'brand:id,name']);
+    }
+
     public static function getRelations(): array
     {
         return [];
